@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+
+import argparse
+
+import yaml
+
+import ceiclient
+from ceiclient.client import SERVICES
+from ceiclient.connection import DashiCeiConnection
+
+parser = argparse.ArgumentParser(description='Client to control CEI services')
+
+parser.add_argument('--broker', '-b', action='store', dest='broker')
+parser.add_argument('--username', '-u', action='store', dest='username')
+parser.add_argument('--password', '-p', action='store', dest='password')
+parser.add_argument('--yaml', '-Y', action='store_const', const=True)
+
+subparsers = parser.add_subparsers(dest='service', help='Service to which to send a command')
+
+for service_name, service in SERVICES.items():
+    service_parser = subparsers.add_parser(service_name)
+    service_subparsers = service_parser.add_subparsers(dest='command', help='Command to send to the service')
+    for command_name, command in service.commands.items():
+        command(service_subparsers)
+
+opts = parser.parse_args()
+
+if __name__ == '__main__':
+    if opts.service not in SERVICES:
+        raise ValueError('Service %s is not supported' % opts.service)
+
+    service = SERVICES[opts.service]
+
+    if opts.command not in service.commands:
+        raise ValueError('Command %s is not supported by service %s' % (opts.command, opts.service))
+
+    command = service.commands[opts.command]
+    conn = DashiCeiConnection(opts.broker, opts.username, opts.password)
+    client = service(conn)
+
+    result = command.execute(client, opts)
+    if opts.yaml:
+        print(yaml.safe_dump(result, default_flow_style=False)),
+    else:
+        command.output(result)
+
+    conn.disconnect()

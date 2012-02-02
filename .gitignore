@@ -1,0 +1,9 @@
+*.egg
+*.egg-info
+*.pid
+*.pyc
+*.sock
+.coverage
+.idea
+build
+dist
