@@ -11,6 +11,7 @@ from ceiclient.connection import DashiCeiConnection
 parser = argparse.ArgumentParser(description='Client to control CEI services')
 
 parser.add_argument('--broker', '-b', action='store', dest='broker')
+parser.add_argument('--exchange', '-x', action='store', dest='exchange', default=None)
 parser.add_argument('--username', '-u', action='store', dest='username')
 parser.add_argument('--password', '-p', action='store', dest='password')
 parser.add_argument('--yaml', '-Y', action='store_const', const=True)
@@ -35,7 +36,7 @@ if __name__ == '__main__':
         raise ValueError('Command %s is not supported by service %s' % (opts.command, opts.service))
 
     command = service.commands[opts.command]
-    conn = DashiCeiConnection(opts.broker, opts.username, opts.password)
+    conn = DashiCeiConnection(opts.broker, opts.username, opts.password, exchange=opts.exchange)
     client = service(conn)
 
     result = command.execute(client, opts)
