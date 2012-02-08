@@ -1,6 +1,9 @@
+import uuid
+
 import connection
 from commands import EPUMDescribe, EPUMList, EPUMReconfigure
 from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump
+from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll
 
 class CeiClient(object):
 
@@ -61,6 +64,49 @@ class PDClient(CeiClient):
     for command in [PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump]:
         commands[command.name] = command
 
+class ProvisionerClient(CeiClient):
+
+    dashi_name = 'provisioner'
+    name = 'provisioner'
+    help = 'Control the Provisioner Service'
+
+    def __init__(self, connection):
+        self._connection = connection
+
+    def provision(self, deployable_type, site, allocation, vars):
+        ids = [str(uuid.uuid4())]
+        nodes = {
+            'work_consumer': {
+                'ids': [str(uuid.uuid4())],
+                'site': site,
+                'allocation': allocation
+            }
+        }
+
+        request = {
+            'deployable_type': deployable_type,
+            'launch_id': str(uuid.uuid4()),
+            'nodes': nodes,
+            'subscribers': [],
+            'vars': vars
+        }
+
+        return self._connection.call(self.dashi_name, 'provision', request=request)
+
+    def describe_nodes(self, nodes=None):
+        return self._connection.call(self.dashi_name, 'describe_nodes', nodes=nodes)
+
+    def dump_state(self, nodes, force_subscribe):
+        return self._connection.call(self.dashi_name, 'dump_state',
+                nodes=nodes, force_subscribe=force_subscribe)
+
+    def terminate_all(self):
+        return self._connection.call(self.dashi_name, 'terminate_all')
+
+    commands = {}
+    for command in [ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll]:
+        commands[command.name] = command
+
 SERVICES = {}
-for service in [EPUMClient, PDClient]:
+for service in [EPUMClient, PDClient, ProvisionerClient]:
     SERVICES[service.name] = service

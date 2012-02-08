@@ -1,5 +1,9 @@
+import json
+import os
+import pprint
 import uuid
 
+import kombu
 from jinja2 import Template
 import yaml
 
@@ -7,6 +11,10 @@ class CeiCommand(object):
 
     def __init__(self, subparsers):
         pass
+
+    @staticmethod
+    def output(result):
+        pprint.pprint(result)
 
 class EPUMDescribe(CeiCommand):
 
@@ -64,11 +72,8 @@ class EPUMReconfigure(CeiCommand):
     @staticmethod
     def execute(client, opts):
         # TODO Create a hash for the merge
-        return client.reconfigure_epu(opts.epu_name, opts.updated_key_value)
-
-    @staticmethod
-    def output(result):
-        print(result)
+        updated_key_value = { 'engine_conf': { 'preserve_n': 1 }}
+        return client.reconfigure_epu(opts.epu_name, updated_key_value)
 
 class PDDispatch(CeiCommand):
 
@@ -90,10 +95,6 @@ class PDDispatch(CeiCommand):
 
         return client.dispatch_process(str(uuid.uuid4().hex), process_spec, None, None, opts.immediate)
 
-    @staticmethod
-    def output(result):
-        print(result)
-
 class PDDescribeProcesses(CeiCommand):
 
     name = 'list'
@@ -104,10 +105,6 @@ class PDDescribeProcesses(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.describe_processes()
-
-    @staticmethod
-    def output(result):
-        print(result)
 
 class PDTerminateProcess(CeiCommand):
 
@@ -121,10 +118,6 @@ class PDTerminateProcess(CeiCommand):
     def execute(client, opts):
         return client.terminate_process(opts.process_id)
 
-    @staticmethod
-    def output(result):
-        print(result)
-
 class PDDescribeProcess(CeiCommand):
 
     name = 'describe'
@@ -137,10 +130,6 @@ class PDDescribeProcess(CeiCommand):
     def execute(client, opts):
         return client.describe_process(opts.process_id)
 
-    @staticmethod
-    def output(result):
-        print(result)
-
 class PDDump(CeiCommand):
 
     name = 'dump'
@@ -152,10 +141,66 @@ class PDDump(CeiCommand):
     def execute(client, opts):
         return client.dump()
 
-    @staticmethod
-    def output(result):
-        print(result)
-
 # TODO Other dashi calls for the PD:
 #dt_state
 #heartbeat, sender_kwarg='sender'
+
+class ProvisionerDump(CeiCommand):
+
+    name = 'dump_state'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('node', action='store', help='The node state to dump')
+
+    @staticmethod
+    def execute(client, opts):
+        subscriber = str(uuid.uuid4())
+        return client.dump_state([opts.node], subscriber)
+
+class ProvisionerDescribeNodes(CeiCommand):
+
+    name = 'describe'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('node', help='A node to describe (describes all nodes if none provided)', nargs='*')
+
+    @staticmethod
+    def execute(client, opts):
+        nodes = opts.node or []
+        return client.describe_nodes(nodes=nodes)
+
+class ProvisionerProvision(CeiCommand):
+
+    name = 'provision'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('deployable_type', help='DT to provision')
+        parser.add_argument('site', help='IaaS site to use (e.g. ec2-east)')
+        parser.add_argument('allocation', help='Type of instance to use (e.g. t1.micro)')
+        parser.add_argument('provisioning_var_file', help='File containing provisioning vars')
+
+    @staticmethod
+    def execute(client, opts):
+        with open(opts.provisioning_var_file) as vars_file:
+            vars = json.load(vars_file)
+
+        # TODO Implement a better way to get secrets (cloudinitd launch plan variables?)
+        vars['broker_ip_address'] = os.environ['RABBITMQ_HOST']
+        vars['borker_username'] = os.environ['RABBITMQ_USERNAME']
+        vars['broker_password'] = os.environ['RABBITMQ_PASSWORD']
+
+        return client.provision(opts.deployable_type, opts.site, opts.allocation, vars)
+
+class ProvisionerTerminateAll(CeiCommand):
+
+    name = 'terminate_all'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        return client.terminate_all()

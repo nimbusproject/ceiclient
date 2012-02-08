@@ -8,12 +8,28 @@ def load():
 
     try:
         cid = CloudInitD('/Users/priteau/.cloudinitd', db_name='processes', terminate=False, boot=False, ready=False)
-        cid.start()
-        cid.block_until_complete()
-    except Exception, e:
-        raise e
-#IncompatibleEnvironment("Problem loading records from cloudinit.d: %s" % str(e))
-    pprint(cid.get_all_services())
+    except APIUsageException, e:
+        IncompatibleEnvironment("Problem loading records from cloudinit.d: %s" % str(e))
+
+    svc_list = cid.get_all_services()
+    for svc in svc_list:
+        print "Service name is " + svc.name
+        for key in svc.get_keys_from_bag():
+            print "Value for key %s is %s" % (key, svc.get_attr_from_bag(key))
+"""
+        foundservice = None
+        if svc.name.find("epu-") == 0:
+            foundservice = svc.name
+        elif svc.name.find("provisioner") == 0:
+            foundservice = "provisioner"
+        elif wholerun:
+            foundservice = svc.name
+        if foundservice:
+            count += 1
+            instance_id = svc.get_attr_from_bag("instance_id")
+            hostname = svc.get_attr_from_bag("hostname")
+            #_load_host(p, c, m, run_name, instance_id, hostname, foundservice)
+"""
 
 #def load(p, c, m, run_name, cloudinitd_dbdir, silent=False, terminate=False, wholerun=True):
 #    """Load any EPU related instances from a local cloudinit.d launch with the same run name.
