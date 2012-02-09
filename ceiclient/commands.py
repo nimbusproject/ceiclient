@@ -252,5 +252,5 @@ class ProvisionerTerminateAll(CeiCommand):
     # until True is received.
     @staticmethod
     def execute(client, opts):
-        while client.terminate_all():
+        while not client.terminate_all():
             pass
