@@ -242,6 +242,15 @@ class ProvisionerTerminateAll(CeiCommand):
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
 
+    # From https://confluence.oceanobservatories.org/display/CIDev/R2+EPU+Provisioner+Improvements
+    #
+    # Disable the provisioner and terminate all running instances.  Prevent
+    # other instances from being started.  This is used during system shutdown
+    # to clean up running VMs.
+    # This operation can be called RPC-style and returns a boolean indicating
+    # whether all instances are terminated. It should be called repeatedly
+    # until True is received.
     @staticmethod
     def execute(client, opts):
-        return client.terminate_all()
+        while client.terminate_all():
+            pass

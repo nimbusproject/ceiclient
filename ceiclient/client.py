@@ -74,24 +74,14 @@ class ProvisionerClient(CeiClient):
         self._connection = connection
 
     def provision(self, deployable_type, site, allocation, vars):
-        ids = [str(uuid.uuid4())]
-        nodes = {
-            'work_consumer': {
-                'ids': [str(uuid.uuid4())],
-                'site': site,
-                'allocation': allocation
-            }
-        }
+        launch_id =  str(uuid.uuid4())
+        instance_ids = [str(uuid.uuid4())]
 
-        request = {
-            'deployable_type': deployable_type,
-            'launch_id': str(uuid.uuid4()),
-            'nodes': nodes,
-            'subscribers': [],
-            'vars': vars
-        }
-
-        return self._connection.call(self.dashi_name, 'provision', request=request)
+        return self._connection.call(self.dashi_name, 'provision',
+                launch_id=launch_id, deployable_type=deployable_type,
+                instance_ids=instance_ids,
+                subscribers=[], site=site,
+                allocation=allocation, vars=vars)
 
     def describe_nodes(self, nodes=None):
         return self._connection.call(self.dashi_name, 'describe_nodes', nodes=nodes)
