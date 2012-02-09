@@ -40,16 +40,42 @@ class TestCommandParsing:
 
     def test_command_parsing_epum_reconfigure_ok(self):
         EPUMReconfigure(self.subparsers)
-        boolkvpair = 'health.monitor_health=false'
-        intkvpair = 'engine_conf.preserve_n=42'
-        stringkvpair = 'general.engine_class=epu.decisionengine.impls.simplest.SimplestEngine'
-        opts = self.parser.parse_args(['reconfigure', 'epu1', '--bool', boolkvpair, '--int', intkvpair, '--string', stringkvpair])
+        boolkvpair1 = 'some.key=false'
+        boolkvpair2 = 'some.other_key=true'
+        intkvpair1 = 'one.key=42'
+        intkvpair2 = 'another.key=24'
+        stringkvpair1 = 'a.string=a_string'
+        stringkvpair2 = 'a.string_again=another_string'
+        opts = self.parser.parse_args(['reconfigure', 'epu1', '--bool',
+            boolkvpair1, '--int', intkvpair1, '--bool', boolkvpair2,
+            '--string', stringkvpair1, '--string', stringkvpair2, '--int',
+            intkvpair2])
 
         assert opts.command == 'reconfigure'
         assert opts.epu_name == 'epu1'
-        assert opts.updated_kv_bool == [boolkvpair]
-        assert opts.updated_kv_int == [intkvpair]
-        assert opts.updated_kv_string == [stringkvpair]
+        assert opts.updated_kv_bool == [boolkvpair1, boolkvpair2]
+        assert opts.updated_kv_int == [intkvpair1, intkvpair2]
+        assert opts.updated_kv_string == [stringkvpair1, stringkvpair2]
+
+        reconfiguration = EPUMReconfigure.format_reconfigure(bool_reconfs=opts.updated_kv_bool,
+                                             int_reconfs=opts.updated_kv_int,
+                                             string_reconfs=opts.updated_kv_string)
+        assert reconfiguration == {
+                'some': {
+                    'key': False,
+                    'other_key': True,
+                },
+                'one': {
+                    'key': 42,
+                },
+                'another': {
+                    'key': 24,
+                },
+                'a': {
+                    'string': 'a_string',
+                    'string_again': 'another_string',
+                },
+        }
 
     @raises(SystemExit)
     def test_command_parsing_epum_reconfigure_failing_wrong_command(self):

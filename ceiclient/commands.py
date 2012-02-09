@@ -1,6 +1,7 @@
 import json
 import os
 import pprint
+import re
 import uuid
 
 import kombu
@@ -66,14 +67,54 @@ class EPUMReconfigure(CeiCommand):
         parser.add_argument('--string', dest='updated_kv_string', action='append', help='Key to modify in the EPU configuration with a string value')
 
     @staticmethod
-    def _TODO_hash_helper():
-        pass
+    def format_reconfigure(bool_reconfs=[], int_reconfs=[], string_reconfs=[]):
+        h = {}
+        r = '([a-zA-Z_0-9]+)\.([a-zA-Z_0-9]+)=(.*)'
+        for reconf in bool_reconfs or []:
+            m = re.match(r, reconf)
+            if m:
+                if h.has_key(m.group(1)):
+                    section = h[m.group(1)]
+                else:
+                    section = {}
+                t = re.compile('true', re.IGNORECASE)
+                f = re.compile('false', re.IGNORECASE)
+                if t.match(m.group(3)):
+                    section[m.group(2)] = True
+                elif f.match(m.group(3)):
+                    section[m.group(2)] = False
+                else:
+                    raise ArgumentError("Bad boolean value %s" % m.group(3))
+                h[m.group(1)] = section
+
+        for reconf in int_reconfs or []:
+            m = re.match(r, reconf)
+            if m:
+                if h.has_key(m.group(1)):
+                    section = h[m.group(1)]
+                else:
+                    section = {}
+
+                section[m.group(2)] = int(m.group(3))
+                h[m.group(1)] = section
+
+        for reconf in string_reconfs or []:
+            m = re.match(r, reconf)
+            if m:
+                if h.has_key(m.group(1)):
+                    section = h[m.group(1)]
+                else:
+                    section = {}
+
+                section[m.group(2)] = m.group(3)
+                h[m.group(1)] = section
+
+        return h
 
     @staticmethod
     def execute(client, opts):
-        # TODO Create a hash for the merge
-        updated_key_value = { 'engine_conf': { 'preserve_n': 1 }}
-        return client.reconfigure_epu(opts.epu_name, updated_key_value)
+        updated_kvs = EPUMReconfigure.format_reconfigure(bool_reconfs=opts.updated_kv_bool, int_reconfs=opts.updated_kv_int, string_reconfs=opts.updated_kv_string)
+        return client.reconfigure_epu(opts.epu_name, updated_kvs)
 
 class PDDispatch(CeiCommand):
 
