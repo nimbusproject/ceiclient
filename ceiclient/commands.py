@@ -3,7 +3,6 @@ import os
 import pprint
 import re
 import uuid
-
 import kombu
 from jinja2 import Template
 import yaml
@@ -16,6 +15,24 @@ class CeiCommand(object):
     @staticmethod
     def output(result):
         pprint.pprint(result)
+
+
+class EPUMAdd(CeiCommand):
+
+    name = 'add'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('epu_name', action='store', help='The EPU to reconfigure')
+        parser.add_argument('--conf', dest='de_conf', action='store', help='Set the type of decision engine to use.')
+
+    @staticmethod
+    def execute(client, opts):
+        stream = open(opts.de_conf, 'r')
+        conf = yaml.load(stream)
+        stream.close()
+        return client.add_epu(opts.epu_name, conf)
+
 
 class EPUMDescribe(CeiCommand):
 
