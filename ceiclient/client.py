@@ -1,5 +1,5 @@
 import uuid
-from ceiclient.commands import EPUMAdd
+from ceiclient.commands import EPUMAdd, EPUMRemove
 
 import connection
 from commands import EPUMDescribe, EPUMList, EPUMReconfigure
@@ -32,8 +32,11 @@ class EPUMClient(CeiClient):
     def add_epu(self, name, config):
         return self._connection.call(self.dashi_name, 'add_epu', epu_name=name, epu_config=config)
 
+    def remove_epu(self, name, config):
+        return self._connection.call(self.dashi_name, 'remove_epu', epu_name=name)
+
     commands = {}
-    for command in [EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd]:
+    for command in [EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd, EPUMRemove]:
         commands[command.name] = command
 
 class PDClient(CeiClient):

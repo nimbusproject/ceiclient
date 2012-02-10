@@ -3,7 +3,7 @@ from nose.tools import raises
 import argparse
 import pprint
 
-from ceiclient.commands import EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd
+from ceiclient.commands import EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd, EPUMRemove
 from ceiclient.commands import PDDispatch
 
 class TestCommandParsing:
@@ -23,6 +23,11 @@ class TestCommandParsing:
         de_conf = "XXX"
         opts = self.parser.parse_args(['add', 'epu2', "--conf", de_conf])
         assert opts.de_conf == "XXX"
+        assert opts.epu_name == 'epu2'
+
+    def test_command_parsing_epum_remove_ok(self):
+        EPUMRemove(self.subparsers)
+        opts = self.parser.parse_args(['remove', 'epu2'])
         assert opts.epu_name == 'epu2'
 
     @raises(SystemExit)
