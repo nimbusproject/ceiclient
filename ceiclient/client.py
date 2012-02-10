@@ -32,7 +32,7 @@ class EPUMClient(CeiClient):
     def add_epu(self, name, config):
         return self._connection.call(self.dashi_name, 'add_epu', epu_name=name, epu_config=config)
 
-    def remove_epu(self, name, config):
+    def remove_epu(self, name):
         return self._connection.call(self.dashi_name, 'remove_epu', epu_name=name)
 
     commands = {}
