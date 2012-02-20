@@ -257,10 +257,10 @@ class ProvisionerProvision(CeiCommand):
         with open(opts.provisioning_var_file) as vars_file:
             vars = json.load(vars_file)
 
-        # TODO Implement a better way to get secrets (cloudinitd launch plan variables?)
-        vars['broker_ip_address'] = os.environ['RABBITMQ_HOST']
-        vars['broker_username'] = os.environ['RABBITMQ_USERNAME']
-        vars['broker_password'] = os.environ['RABBITMQ_PASSWORD']
+        # Update the provisioning variables with secret RabbitMQ credentials
+        vars['broker_ip_address'] = client._connection.amqp_broker
+        vars['broker_username'] = client._connection.amqp_username
+        vars['broker_password'] = client._connection.amqp_password
 
         return client.provision(opts.deployable_type, opts.site, opts.allocation, vars)
 
