@@ -259,7 +259,7 @@ class ProvisionerProvision(CeiCommand):
 
         # TODO Implement a better way to get secrets (cloudinitd launch plan variables?)
         vars['broker_ip_address'] = os.environ['RABBITMQ_HOST']
-        vars['borker_username'] = os.environ['RABBITMQ_USERNAME']
+        vars['broker_username'] = os.environ['RABBITMQ_USERNAME']
         vars['broker_password'] = os.environ['RABBITMQ_PASSWORD']
 
         return client.provision(opts.deployable_type, opts.site, opts.allocation, vars)
