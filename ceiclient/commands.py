@@ -162,7 +162,7 @@ class PDDispatch(CeiCommand):
             with open(opts.process_spec) as f:
                 process_spec = yaml.load(f)
         except Exception, e:
-            print "Problem reading process specification file %s: %s" % e
+            print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
             sys.exit(1)
 
         return client.dispatch_process(str(uuid.uuid4().hex), process_spec, None, None, opts.immediate)
