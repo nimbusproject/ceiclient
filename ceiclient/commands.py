@@ -2,7 +2,9 @@ import json
 import os
 import pprint
 import re
+import sys
 import uuid
+
 import kombu
 from jinja2 import Template
 import yaml
@@ -254,8 +256,12 @@ class ProvisionerProvision(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        with open(opts.provisioning_var_file) as vars_file:
-            vars = json.load(vars_file)
+        try:
+            with open(opts.provisioning_var_file) as vars_file:
+                vars = yaml.load(vars_file)
+        except Exception, e:
+            print "Problem reading provisioning variables file %s: %s" % (opts.provisioning_var_file, e)
+            sys.exit(1)
 
         # Update the provisioning variables with secret RabbitMQ credentials
         vars['broker_ip_address'] = client._connection.amqp_broker
