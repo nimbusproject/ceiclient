@@ -11,11 +11,11 @@ class DashiCeiConnection(CeiConnection):
 
     _name = 'ceiclient'
 
-    def __init__(self, broker, username, password, exchange=None, timeout=None):
+    def __init__(self, broker, username, password, exchange=None, timeout=None, port=5672):
         self.amqp_broker = broker
         self.amqp_username = username
         self.amqp_password = password
-        self.amqp_port = 5672
+        self.amqp_port = port
         self.amqp_exchange = exchange or DEFAULT_EXCHANGE
         self.timeout = timeout
 
