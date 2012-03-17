@@ -115,7 +115,7 @@ class EPUMReconfigure(CeiCommand):
                 elif f.match(m.group(3)):
                     section[m.group(2)] = False
                 else:
-                    raise ArgumentError("Bad boolean value %s" % m.group(3))
+                    raise ValueError("Bad boolean value %s" % m.group(3))
                 h[m.group(1)] = section
 
         for reconf in int_reconfs or []:
