@@ -1,0 +1,8 @@
+---
+general:
+  engine_class: epu.decisionengine.impls.simplest.SimplestEngine
+health:
+  monitor_health: true
+engine_conf:
+  preserve_n: 0
+  epuworker_type: sleeper
