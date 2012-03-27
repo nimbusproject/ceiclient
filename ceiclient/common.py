@@ -22,6 +22,7 @@ def load_cloudinitd_db(run_name):
                 vars['rabbitmq_host'] = svc.get_attr_from_bag("hostname")
                 vars['rabbitmq_username'] = svc.get_attr_from_bag("rabbitmq_username")
                 vars['rabbitmq_password'] = svc.get_attr_from_bag("rabbitmq_password")
+                vars['rabbitmq_exchange'] = svc.get_attr_from_bag("rabbitmq_exchange")
             except Exception, e:
                 raise
 

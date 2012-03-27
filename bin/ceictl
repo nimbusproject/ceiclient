@@ -54,7 +54,7 @@ if __name__ == '__main__':
         amqp_settings['rabbitmq_password'] = opts.password
     if opts.exchange:
         amqp_settings['rabbitmq_exchange'] = opts.exchange
-    else:
+    elif not amqp_settings.has_key('rabbitmq_exchange'):
         amqp_settings['rabbitmq_exchange'] = None
 
     conn = DashiCeiConnection(amqp_settings['rabbitmq_host'],
