@@ -3,7 +3,7 @@ from pprint import pprint
 
 import cloudinitd
 from cloudinitd.user_api import CloudInitD
-from cloudinitd.exceptions import APIUsageException
+from cloudinitd.exceptions import APIUsageException, ConfigException
 
 def load_cloudinitd_db(run_name):
     vars = {}
@@ -22,7 +22,10 @@ def load_cloudinitd_db(run_name):
                 vars['rabbitmq_host'] = svc.get_attr_from_bag("hostname")
                 vars['rabbitmq_username'] = svc.get_attr_from_bag("rabbitmq_username")
                 vars['rabbitmq_password'] = svc.get_attr_from_bag("rabbitmq_password")
-                vars['rabbitmq_exchange'] = svc.get_attr_from_bag("rabbitmq_exchange")
+                try:
+                    vars['rabbitmq_exchange'] = svc.get_attr_from_bag("rabbitmq_exchange")
+                except ConfigException:
+                    vars['rabbitmq_exchange'] = None
             except Exception, e:
                 raise
 
