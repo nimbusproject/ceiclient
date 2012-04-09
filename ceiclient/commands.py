@@ -184,7 +184,7 @@ class PDTerminateProcess(CeiCommand):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('process_id', action='store', help='The PID of the process to kill')
+        parser.add_argument('process_id', action='store', help='The UPID of the process to kill')
 
     @staticmethod
     def execute(client, opts):
@@ -196,7 +196,7 @@ class PDDescribeProcess(CeiCommand):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('process_id', action='store', help='The PID of the process to describe')
+        parser.add_argument('process_id', action='store', help='The UPID of the process to describe')
 
     @staticmethod
     def execute(client, opts):
