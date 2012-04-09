@@ -8,7 +8,7 @@ from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvi
 
 class CeiClient(object):
 
-    def __init__(self):
+    def __init__(self, connection, dashi_name=None):
         pass
 
 class EPUMClient(CeiClient):
@@ -17,7 +17,9 @@ class EPUMClient(CeiClient):
     name = 'epu'
     help = 'Control the EPU Management Service'
 
-    def __init__(self, connection):
+    def __init__(self, connection, dashi_name=None):
+        if dashi_name:
+            self.dashi_name = dashi_name
         self._connection = connection
 
     def describe_epu(self, name):
@@ -45,7 +47,9 @@ class PDClient(CeiClient):
     name = 'process'
     help = 'Control the Process Dispatcher Service'
 
-    def __init__(self, connection):
+    def __init__(self, connection, dashi_name=None):
+        if dashi_name:
+            self.dashi_name = dashi_name
         self._connection = connection
 
     def dispatch_process(self, upid, spec, subscribers, constraints, immediate=False):
@@ -77,7 +81,9 @@ class ProvisionerClient(CeiClient):
     name = 'provisioner'
     help = 'Control the Provisioner Service'
 
-    def __init__(self, connection):
+    def __init__(self, connection, dashi_name=None):
+        if dashi_name:
+            self.dashi_name = dashi_name
         self._connection = connection
 
     def provision(self, deployable_type, site, allocation, vars):

@@ -19,6 +19,7 @@ parser.add_argument('--timeout', '-t', action='store', dest='timeout', type=int,
 parser.add_argument('--yaml', '-Y', action='store_const', const=True)
 parser.add_argument('--json', '-J', action='store_const', const=True)
 parser.add_argument('--run-name', '-n', action='store', dest='run_name')
+parser.add_argument('--dashi-name', '-d', action='store', default=None)
 
 subparsers = parser.add_subparsers(dest='service', help='Service to which to send a command')
 
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     conn = DashiCeiConnection(amqp_settings['rabbitmq_host'],
             amqp_settings['rabbitmq_username'], amqp_settings['rabbitmq_password'],
             exchange=amqp_settings['rabbitmq_exchange'], timeout=opts.timeout)
-    client = service(conn)
+    client = service(conn, dashi_name=opts.dashi_name)
 
     command = service.commands[opts.command]
     result = command.execute(client, opts)
