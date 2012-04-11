@@ -190,6 +190,18 @@ class PDTerminateProcess(CeiCommand):
     def execute(client, opts):
         return client.terminate_process(opts.process_id)
 
+class PDRestartProcess(CeiCommand):
+
+    name = 'restart'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_id', action='store', help='The UPID of the process to kill')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.restart_process(opts.process_id)
+
 class PDDescribeProcess(CeiCommand):
 
     name = 'describe'

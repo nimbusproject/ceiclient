@@ -3,7 +3,7 @@ from ceiclient.commands import EPUMAdd, EPUMRemove
 
 import connection
 from commands import EPUMDescribe, EPUMList, EPUMReconfigure
-from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump
+from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess
 from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll
 
 class CeiClient(object):
@@ -68,11 +68,14 @@ class PDClient(CeiClient):
     def terminate_process(self, upid):
         return self._connection.call(self.dashi_name, 'terminate_process', upid=upid)
 
+    def restart_process(self, upid):
+        return self._connection.call(self.dashi_name, 'restart_process', upid=upid)
+
     def dump(self):
         return self._connection.call(self.dashi_name, 'dump')
 
     commands = {}
-    for command in [PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump]:
+    for command in [PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess]:
         commands[command.name] = command
 
 class ProvisionerClient(CeiClient):
