@@ -22,20 +22,20 @@ class EPUMClient(CeiClient):
             self.dashi_name = dashi_name
         self._connection = connection
 
-    def describe_epu(self, name):
-        return self._connection.call(self.dashi_name, 'describe_epu', epu_name=name)
+    def describe_epu(self, name, caller=None):
+        return self._connection.call(self.dashi_name, 'describe_epu', epu_name=name, caller=caller)
 
-    def list_epus(self):
-        return self._connection.call(self.dashi_name, 'list_epus')
+    def list_epus(self, caller=None):
+        return self._connection.call(self.dashi_name, 'list_epus', caller=caller)
 
-    def reconfigure_epu(self, name, config):
-        return self._connection.call(self.dashi_name, 'reconfigure_epu', epu_name=name, epu_config=config)
+    def reconfigure_epu(self, name, config, caller=None):
+        return self._connection.call(self.dashi_name, 'reconfigure_epu', epu_name=name, epu_config=config, caller=caller)
 
-    def add_epu(self, name, config):
-        return self._connection.call(self.dashi_name, 'add_epu', epu_name=name, epu_config=config)
+    def add_epu(self, name, config, caller=None):
+        return self._connection.call(self.dashi_name, 'add_epu', epu_name=name, epu_config=config, caller=caller)
 
-    def remove_epu(self, name):
-        return self._connection.call(self.dashi_name, 'remove_epu', epu_name=name)
+    def remove_epu(self, name, caller=None):
+        return self._connection.call(self.dashi_name, 'remove_epu', epu_name=name, caller=caller)
 
     commands = {}
     for command in [EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd, EPUMRemove]:
@@ -89,7 +89,7 @@ class ProvisionerClient(CeiClient):
             self.dashi_name = dashi_name
         self._connection = connection
 
-    def provision(self, deployable_type, site, allocation, vars):
+    def provision(self, deployable_type, site, allocation, vars, caller=None):
         launch_id =  str(uuid.uuid4())
         instance_ids = [str(uuid.uuid4())]
 
@@ -97,10 +97,10 @@ class ProvisionerClient(CeiClient):
                 launch_id=launch_id, deployable_type=deployable_type,
                 instance_ids=instance_ids,
                 subscribers=[], site=site,
-                allocation=allocation, vars=vars)
+                allocation=allocation, vars=vars, caller=caller)
 
-    def describe_nodes(self, nodes=None):
-        return self._connection.call(self.dashi_name, 'describe_nodes', nodes=nodes)
+    def describe_nodes(self, nodes=None, caller=None):
+        return self._connection.call(self.dashi_name, 'describe_nodes', nodes=nodes, caller=caller)
 
     def dump_state(self, nodes, force_subscribe):
         return self._connection.call(self.dashi_name, 'dump_state',

@@ -33,7 +33,7 @@ class EPUMAdd(CeiCommand):
         stream = open(opts.de_conf, 'r')
         conf = yaml.load(stream)
         stream.close()
-        return client.add_epu(opts.epu_name, conf)
+        return client.add_epu(opts.epu_name, conf, caller=opts.caller)
 
 class EPUMRemove(CeiCommand):
 
@@ -45,7 +45,7 @@ class EPUMRemove(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        return client.remove_epu(opts.epu_name)
+        return client.remove_epu(opts.epu_name, caller=opts.caller)
 
 
 class EPUMDescribe(CeiCommand):
@@ -63,7 +63,7 @@ Health:                  Monitor health  = {{result.config.health.monitor_health
 
     @staticmethod
     def execute(client, opts):
-        return client.describe_epu(opts.epu_name)
+        return client.describe_epu(opts.epu_name, caller=opts.caller)
 
     @staticmethod
     def output(result):
@@ -79,7 +79,7 @@ class EPUMList(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        return client.list_epus()
+        return client.list_epus(caller=opts.caller)
 
     @staticmethod
     def output(result):
@@ -145,7 +145,7 @@ class EPUMReconfigure(CeiCommand):
     @staticmethod
     def execute(client, opts):
         updated_kvs = EPUMReconfigure.format_reconfigure(bool_reconfs=opts.updated_kv_bool, int_reconfs=opts.updated_kv_int, string_reconfs=opts.updated_kv_string)
-        return client.reconfigure_epu(opts.epu_name, updated_kvs)
+        return client.reconfigure_epu(opts.epu_name, updated_kvs, caller=opts.caller)
 
 class PDDispatch(CeiCommand):
 
@@ -253,7 +253,7 @@ class ProvisionerDescribeNodes(CeiCommand):
     @staticmethod
     def execute(client, opts):
         nodes = opts.node or []
-        return client.describe_nodes(nodes=nodes)
+        return client.describe_nodes(nodes=nodes, caller=opts.caller)
 
 class ProvisionerProvision(CeiCommand):
 
@@ -280,7 +280,7 @@ class ProvisionerProvision(CeiCommand):
         vars['broker_username'] = client._connection.amqp_username
         vars['broker_password'] = client._connection.amqp_password
 
-        return client.provision(opts.deployable_type, opts.site, opts.allocation, vars)
+        return client.provision(opts.deployable_type, opts.site, opts.allocation, vars, caller=opts.caller)
 
 class ProvisionerTerminateAll(CeiCommand):
 
