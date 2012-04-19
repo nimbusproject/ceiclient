@@ -9,13 +9,19 @@ import ceiclient
 from ceiclient.client import SERVICES
 from ceiclient.connection import DashiCeiConnection
 
+DEFAULT_RABBITMQ_USERNAME = 'guest'
+DEFAULT_RABBITMQ_PASSWORD = 'guest'
+DEFAULT_RABBITMQ_HOSTNAME = 'localhost'
+DEFAULT_RABBITMQ_EXCHANGE = None
+DEFAULT_TIMEOUT = 5
+
 parser = argparse.ArgumentParser(description='Client to control CEI services')
 
 parser.add_argument('--broker', '-b', action='store', dest='broker')
 parser.add_argument('--exchange', '-x', action='store', dest='exchange', default=None)
 parser.add_argument('--username', '-u', action='store', dest='username')
 parser.add_argument('--password', '-p', action='store', dest='password')
-parser.add_argument('--timeout', '-t', action='store', dest='timeout', type=int, default=5)
+parser.add_argument('--timeout', '-t', action='store', dest='timeout', type=int, default=DEFAULT_TIMEOUT)
 parser.add_argument('--yaml', '-Y', action='store_const', const=True)
 parser.add_argument('--json', '-J', action='store_const', const=True)
 parser.add_argument('--run-name', '-n', action='store', dest='run_name')
@@ -43,6 +49,13 @@ if __name__ == '__main__':
 
     amqp_settings = {}
 
+    # Set default amqp settings (for localhost testing)
+    amqp_settings['rabbitmq_host'] = DEFAULT_RABBITMQ_HOSTNAME
+    amqp_settings['rabbitmq_username'] = DEFAULT_RABBITMQ_USERNAME
+    amqp_settings['rabbitmq_password'] = DEFAULT_RABBITMQ_PASSWORD
+    amqp_settings['rabbitmq_exchange'] = DEFAULT_RABBITMQ_EXCHANGE
+
+
     # Read AMQP settings and credentials from the cloudinitd DB if possible
     if opts.run_name:
         amqp_settings = ceiclient.common.load_cloudinitd_db(opts.run_name)
@@ -56,8 +69,6 @@ if __name__ == '__main__':
         amqp_settings['rabbitmq_password'] = opts.password
     if opts.exchange:
         amqp_settings['rabbitmq_exchange'] = opts.exchange
-    elif not amqp_settings.has_key('rabbitmq_exchange'):
-        amqp_settings['rabbitmq_exchange'] = None
 
     conn = DashiCeiConnection(amqp_settings['rabbitmq_host'],
             amqp_settings['rabbitmq_username'], amqp_settings['rabbitmq_password'],
