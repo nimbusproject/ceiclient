@@ -1,15 +1,111 @@
 import uuid
-from ceiclient.commands import EPUMAdd, EPUMRemove
 
 import connection
-from commands import EPUMDescribe, EPUMList, EPUMReconfigure
+from commands import DTRSAddDT, DTRSDescribeDT, DTRSListDT, DTRSRemoveDT, DTRSUpdateDt
+from commands import DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSite, DTRSUpdateSite
+from commands import DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials
+from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemove
 from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess
 from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll
+
 
 class CeiClient(object):
 
     def __init__(self, connection, dashi_name=None):
         pass
+
+
+class DTRSDTClient(CeiClient):
+
+    dashi_name = 'dtrs'
+    name = 'dt'
+    help = 'Control Deployable Types in the DTRS'
+
+    def __init__(self, connection, dashi_name=None):
+        if dashi_name:
+            self.dashi_name = dashi_name
+        self._connection = connection
+
+    def add_dt(self, caller, dt_name, dt_definition):
+        return self._connection.call(self.dashi_name, 'add_dt', caller=caller, dt_name=dt_name, dt_definition=dt_definition)
+
+    def describe_dt(self, caller, dt_name):
+        return self._connection.call(self.dashi_name, 'describe_dt', caller=caller, dt_name=dt_name)
+
+    def list_dts(self, caller):
+        return self._connection.call(self.dashi_name, 'list_dts', caller=caller)
+
+    def remove_dt(self, caller, dt_name):
+        return self._connection.call(self.dashi_name, 'remove_dt', caller=caller, dt_name=dt_name)
+
+    def update_dt(self, caller, dt_name, dt_definition):
+        return self._connection.call(self.dashi_name, 'update_dt', caller=caller, dt_name=dt_name, dt_definition=dt_definition)
+
+    commands = {}
+    for command in [DTRSAddDT, DTRSDescribeDT, DTRSListDT, DTRSRemoveDT, DTRSUpdateDt]:
+        commands[command.name] = command
+
+
+class DTRSSiteClient(CeiClient):
+
+    dashi_name = 'dtrs'
+    name = 'site'
+    help = 'Control sites in the DTRS'
+
+    def __init__(self, connection, dashi_name=None):
+        if dashi_name:
+            self.dashi_name = dashi_name
+        self._connection = connection
+
+    def add_site(self, site_name, site_definition):
+        return self._connection.call(self.dashi_name, 'add_site', site_name=site_name, site_definition=site_definition)
+
+    def describe_site(self, site_name):
+        return self._connection.call(self.dashi_name, 'describe_site', site_name=site_name)
+
+    def list_sites(self):
+        return self._connection.call(self.dashi_name, 'list_sites')
+
+    def remove_site(self, site_name):
+        return self._connection.call(self.dashi_name, 'remove_site', site_name=site_name)
+
+    def update_site(self, site_name, site_definition):
+        return self._connection.call(self.dashi_name, 'update_site', site_name=site_name, site_definition=site_definition)
+
+    commands = {}
+    for command in [DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSite, DTRSUpdateSite]:
+        commands[command.name] = command
+
+
+class DTRSCredentialsClient(CeiClient):
+
+    dashi_name = 'dtrs'
+    name = 'credentials'
+    help = 'Control credentials in the DTRS'
+
+    def __init__(self, connection, dashi_name=None):
+        if dashi_name:
+            self.dashi_name = dashi_name
+        self._connection = connection
+
+    def add_credentials(self, caller, site_name, site_credentials):
+        return self._connection.call(self.dashi_name, 'add_credentials', caller=caller, site_name=site_name, site_credentials=site_credentials)
+
+    def describe_credentials(self, caller, site_name):
+        return self._connection.call(self.dashi_name, 'describe_credentials', caller=caller, site_name=site_name)
+
+    def list_credentials(self, caller):
+        return self._connection.call(self.dashi_name, 'list_credentials', caller=caller)
+
+    def remove_credentials(self, caller, site_name):
+        return self._connection.call(self.dashi_name, 'remove_credentials', caller=caller, site_name=site_name)
+
+    def update_credentials(self, caller, site_name, site_credentials):
+        return self._connection.call(self.dashi_name, 'update_credentials', caller=caller, site_name=site_name, site_credentials=site_credentials)
+
+    commands = {}
+    for command in  [DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials]:
+        commands[command.name] = command
 
 class EPUMClient(CeiClient):
 
@@ -114,5 +210,5 @@ class ProvisionerClient(CeiClient):
         commands[command.name] = command
 
 SERVICES = {}
-for service in [EPUMClient, PDClient, ProvisionerClient]:
+for service in [DTRSDTClient, DTRSSiteClient, DTRSCredentialsClient, EPUMClient, PDClient, ProvisionerClient]:
     SERVICES[service.name] = service

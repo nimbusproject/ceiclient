@@ -19,6 +19,220 @@ class CeiCommand(object):
         pprint.pprint(result)
 
 
+class DTRSAddDT(CeiCommand):
+
+    name = 'add'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('dt_name', action='store', help='The name of the DT to be added.')
+        parser.add_argument('--definition', dest='dt_def_file', action='store', help='Set the DT definition to use.')
+
+    @staticmethod
+    def execute(client, opts):
+        stream = open(opts.dt_def_file, 'r')
+        dt_def = yaml.load(stream)
+        stream.close()
+        return client.add_dt(opts.caller, opts.dt_name, dt_def)
+
+
+class DTRSDescribeDT(CeiCommand):
+
+    name = 'describe'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('dt_name', action='store', help='The DT to describe')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.describe_dt(opts.caller, opts.dt_name)
+
+
+class DTRSListDT(CeiCommand):
+
+    name = 'list'
+
+    def __init__(self, subparsers):
+        subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        return client.list_dts(caller=opts.caller)
+
+
+class DTRSRemoveDT(CeiCommand):
+
+    name = 'remove'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('dt_name', action='store', help='The DT to remove')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.remove_dt(opts.caller, opts.dt_name)
+
+
+class DTRSUpdateDt(CeiCommand):
+
+    name = 'update'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('dt_name', action='store', help='The name of the DT to be updated.')
+        parser.add_argument('--definition', dest='dt_def_file', action='store', help='The DT definition to use.')
+
+    @staticmethod
+    def execute(client, opts):
+        stream = open(opts.dt_def_file, 'r')
+        dt_def = yaml.load(stream)
+        stream.close()
+        return client.update_dt(opts.caller, opts.dt_name, dt_def)
+
+
+class DTRSAddSite(CeiCommand):
+
+    name = 'add'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('site_name', action='store', help='The name of the site to be added.')
+        parser.add_argument('--definition', dest='site_def_file', action='store', help='Set the site definition to use.')
+
+    @staticmethod
+    def execute(client, opts):
+        stream = open(opts.site_def_file, 'r')
+        site_def = yaml.load(stream)
+        stream.close()
+        return client.add_site(opts.site_name, site_def)
+
+
+class DTRSDescribeSite(CeiCommand):
+
+    name = 'describe'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('site_name', action='store', help='The site to describe')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.describe_site(opts.site_name)
+
+
+class DTRSListSites(CeiCommand):
+
+    name = 'list'
+
+    def __init__(self, subparsers):
+        subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        return client.list_sites()
+
+
+class DTRSRemoveSite(CeiCommand):
+
+    name = 'remove'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('site_name', action='store', help='The site to remove')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.remove_site(opts.site_name)
+
+
+class DTRSUpdateSite(CeiCommand):
+
+    name = 'update'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('site_name', action='store', help='The name of the site to be updated.')
+        parser.add_argument('--definition', dest='site_def_file', action='store', help='The site definition to use.')
+
+    @staticmethod
+    def execute(client, opts):
+        stream = open(opts.site_def_file, 'r')
+        site_def = yaml.load(stream)
+        stream.close()
+        return client.update_site(opts.site_name, site_def)
+
+class DTRSAddCredentials(CeiCommand):
+
+    name = 'add'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('site_name', action='store', help='The name of the site to be added.')
+        parser.add_argument('--definition', dest='credentials_def_file', action='store', help='Set the credentials definition to use.')
+
+    @staticmethod
+    def execute(client, opts):
+        stream = open(opts.credentials_def_file, 'r')
+        credentials_def = yaml.load(stream)
+        stream.close()
+        return client.add_credentials(opts.caller, opts.site_name, credentials_def)
+
+
+class DTRSDescribeCredentials(CeiCommand):
+
+    name = 'describe'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('site_name', action='store', help='The site to describe')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.describe_credentials(opts.caller, opts.site_name)
+
+
+class DTRSListCredentials(CeiCommand):
+
+    name = 'list'
+
+    def __init__(self, subparsers):
+        subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        return client.list_credentials(caller=opts.caller)
+
+
+class DTRSRemoveCredentials(CeiCommand):
+
+    name = 'remove'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('site_name', action='store', help='The site to remove')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.remove_credentials(opts.caller, opts.site_name)
+
+
+class DTRSUpdateCredentials(CeiCommand):
+
+    name = 'update'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('site_name', action='store', help='The name of the site to be updated.')
+        parser.add_argument('--definition', dest='credentials_def_file', action='store', help='The credentials definition to use.')
+
+    @staticmethod
+    def execute(client, opts):
+        stream = open(opts.credentials_def_file, 'r')
+        credentials_def = yaml.load(stream)
+        stream.close()
+        return client.update_credentials(opts.caller, opts.site_name, credentials_def)
+
 class EPUMAdd(CeiCommand):
 
     name = 'add'

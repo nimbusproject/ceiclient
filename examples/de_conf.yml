@@ -6,3 +6,4 @@ health:
 engine_conf:
   preserve_n: 0
   epuworker_type: sleeper
+  force_site: ec2.us-east-1
