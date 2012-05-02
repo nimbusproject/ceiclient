@@ -11,7 +11,5 @@ setup(name='ceiclient',
       author_email='nimbus@mcs.anl.gov',
       packages=['ceiclient'],
       scripts=['bin/ceictl'],
-      install_requires=['cloudinitd==1.2', 'dashi', 'Jinja2', 'PyYAML'],
-      setup_requires=['nose'],
-      tests_require=['coverage', 'mock', 'nose'],
+      install_requires=['cloudinitd==1.2', 'dashi', 'Jinja2', 'PyYAML', 'mock', 'nose'],
       test_suite='nose.collector')
