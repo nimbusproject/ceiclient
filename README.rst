@@ -59,20 +59,20 @@ To terminate all nodes and shut down the provisioner:
 EPU Manager
 -----------
 
-To control the EPU manager, use the ``epu`` service name.
+To control the EPU manager, use the ``domain`` service name.
 
-To list all EPUs:
+To list all domains:
 
-    ``ceictl epu list``
+    ``ceictl domain list``
 
-To describe the EPU named `epu1`:
+To describe the domain named `domain1`:
 
-    ``ceictl epu describe epu1``
+    ``ceictl domain describe domain1``
 
-To reconfigure the EPU named `epu1` and change its engine configuration
+To reconfigure the domain named `domain1` and change its engine configuration
 parameter `preserve_n` to the integer value 2:
 
-    ``ceictl epu reconfigure --int engine_conf.preserve_n=2 epu1``
+    ``ceictl domain reconfigure --int engine_conf.preserve_n=2 domain1``
 
 Boolean and string values can also be provided with the ``--bool`` and
 ``--string`` options.

@@ -110,7 +110,7 @@ class DTRSCredentialsClient(CeiClient):
 class EPUMClient(CeiClient):
 
     dashi_name = 'epu_management_service'
-    name = 'epu'
+    name = 'domain'
     help = 'Control the EPU Management Service'
 
     def __init__(self, connection, dashi_name=None):
@@ -118,20 +118,20 @@ class EPUMClient(CeiClient):
             self.dashi_name = dashi_name
         self._connection = connection
 
-    def describe_epu(self, name, caller=None):
-        return self._connection.call(self.dashi_name, 'describe_epu', epu_name=name, caller=caller)
+    def describe_domain(self, name, caller=None):
+        return self._connection.call(self.dashi_name, 'describe_domain', domain_id=name, caller=caller)
 
-    def list_epus(self, caller=None):
-        return self._connection.call(self.dashi_name, 'list_epus', caller=caller)
+    def list_domains(self, caller=None):
+        return self._connection.call(self.dashi_name, 'list_domains', caller=caller)
 
-    def reconfigure_epu(self, name, config, caller=None):
-        return self._connection.call(self.dashi_name, 'reconfigure_epu', epu_name=name, epu_config=config, caller=caller)
+    def reconfigure_domain(self, name, config, caller=None):
+        return self._connection.call(self.dashi_name, 'reconfigure_domain', domain_id=name, config=config, caller=caller)
 
-    def add_epu(self, name, config, caller=None):
-        return self._connection.call(self.dashi_name, 'add_epu', epu_name=name, epu_config=config, caller=caller)
+    def add_domain(self, name, config, caller=None):
+        return self._connection.call(self.dashi_name, 'add_domain', domain_id=name, config=config, caller=caller)
 
-    def remove_epu(self, name, caller=None):
-        return self._connection.call(self.dashi_name, 'remove_epu', epu_name=name, caller=caller)
+    def remove_domain(self, name, caller=None):
+        return self._connection.call(self.dashi_name, 'remove_domain', domain_id=name, caller=caller)
 
     commands = {}
     for command in [EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd, EPUMRemove]:

@@ -239,7 +239,7 @@ class EPUMAdd(CeiCommand):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('epu_name', action='store', help='The name of the EPU to be added.')
+        parser.add_argument('domain_id', action='store', help='The name of the domain to be added.')
         parser.add_argument('--conf', dest='de_conf', action='store', help='Set the type of decision engine to use.')
 
     @staticmethod
@@ -247,7 +247,7 @@ class EPUMAdd(CeiCommand):
         stream = open(opts.de_conf, 'r')
         conf = yaml.load(stream)
         stream.close()
-        return client.add_epu(opts.epu_name, conf, caller=opts.caller)
+        return client.add_domain(opts.domain_id, conf, caller=opts.caller)
 
 class EPUMRemove(CeiCommand):
 
@@ -255,11 +255,11 @@ class EPUMRemove(CeiCommand):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('epu_name', action='store', help='The EPU to remove')
+        parser.add_argument('domain_id', action='store', help='The domain to remove')
 
     @staticmethod
     def execute(client, opts):
-        return client.remove_epu(opts.epu_name, caller=opts.caller)
+        return client.remove_domain(opts.domain_id, caller=opts.caller)
 
 
 class EPUMDescribe(CeiCommand):
@@ -273,11 +273,11 @@ Health:                  Monitor health  = {{result.config.health.monitor_health
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('epu_name', action='store', help='The EPU to describe')
+        parser.add_argument('domain_id', action='store', help='The domain to describe')
 
     @staticmethod
     def execute(client, opts):
-        return client.describe_epu(opts.epu_name, caller=opts.caller)
+        return client.describe_domain(opts.domain_id, caller=opts.caller)
 
     @staticmethod
     def output(result):
@@ -293,12 +293,12 @@ class EPUMList(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        return client.list_epus(caller=opts.caller)
+        return client.list_domains(caller=opts.caller)
 
     @staticmethod
     def output(result):
-        for epu_name in result:
-            print epu_name
+        for domain_id in result:
+            print domain_id
 
 class EPUMReconfigure(CeiCommand):
 
@@ -306,10 +306,10 @@ class EPUMReconfigure(CeiCommand):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('epu_name', action='store', help='The EPU to reconfigure')
-        parser.add_argument('--bool', dest='updated_kv_bool', action='append', help='Key to modify in the EPU configuration with a boolean value')
-        parser.add_argument('--int', dest='updated_kv_int', action='append', help='Key to modify in the EPU configuration with a integer value')
-        parser.add_argument('--string', dest='updated_kv_string', action='append', help='Key to modify in the EPU configuration with a string value')
+        parser.add_argument('domain_id', action='store', help='The domain to reconfigure')
+        parser.add_argument('--bool', dest='updated_kv_bool', action='append', help='Key to modify in the domain configuration with a boolean value')
+        parser.add_argument('--int', dest='updated_kv_int', action='append', help='Key to modify in the domain configuration with a integer value')
+        parser.add_argument('--string', dest='updated_kv_string', action='append', help='Key to modify in the domain configuration with a string value')
 
     @staticmethod
     def format_reconfigure(bool_reconfs=[], int_reconfs=[], string_reconfs=[]):
@@ -359,7 +359,7 @@ class EPUMReconfigure(CeiCommand):
     @staticmethod
     def execute(client, opts):
         updated_kvs = EPUMReconfigure.format_reconfigure(bool_reconfs=opts.updated_kv_bool, int_reconfs=opts.updated_kv_int, string_reconfs=opts.updated_kv_string)
-        return client.reconfigure_epu(opts.epu_name, updated_kvs, caller=opts.caller)
+        return client.reconfigure_domain(opts.domain_id, updated_kvs, caller=opts.caller)
 
 class PDDispatch(CeiCommand):
 
