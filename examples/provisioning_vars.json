@@ -10,5 +10,5 @@
   "git_repo": "https://github.com/ooici/epu.git",
   "git_branch": "master",
   "git_commit": "HEAD",
-  "dtdata_archive_url": "https://github.com/ooici/dt-data/tarball/dashi"
+  "dtdata_archive_url": "https://github.com/ooici/dt-data/tarball/master"
 }
