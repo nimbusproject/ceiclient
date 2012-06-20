@@ -427,6 +427,7 @@ class PDDescribeProcess(CeiCommand):
     def execute(client, opts):
         return client.describe_process(opts.process_id)
 
+
 class PDDump(CeiCommand):
 
     name = 'dump'
@@ -441,6 +442,79 @@ class PDDump(CeiCommand):
 # TODO Other dashi calls for the PD:
 #dt_state
 #heartbeat, sender_kwarg='sender'
+
+
+class PyonPDCreatePD(CeiCommand):
+
+    name = 'create_pd'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_spec', metavar='process_spec.yml')
+
+    @staticmethod
+    def execute(client, opts):
+        try:
+            with open(opts.process_spec) as f:
+                process_spec = yaml.load(f)
+        except Exception, e:
+            print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
+            sys.exit(1)
+
+        return client.create_process_definition(process_spec)
+
+
+class PyonPDUpdatePD(CeiCommand):
+
+    name = 'update_pd'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_spec', metavar='process_spec.yml')
+
+    @staticmethod
+    def execute(client, opts):
+        try:
+            with open(opts.process_spec) as f:
+                process_spec = yaml.load(f)
+        except Exception, e:
+            print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
+            sys.exit(1)
+
+        return client.update_process_definition(process_spec)
+
+
+class PyonPDReadPD(CeiCommand):
+
+    name = 'read_pd'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='xxxxxxx')
+
+    @staticmethod
+    def execute(client, opts):
+
+        return client.read_process_definition(opts.process_definition_id)
+
+
+class PyonPDDeletePD(CeiCommand):
+
+    name = 'delete_pd'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='xxxxxxx')
+
+    @staticmethod
+    def execute(client, opts):
+
+        return client.delete_process_definition(opts.process_definition_id)
+
 
 class ProvisionerDump(CeiCommand):
 

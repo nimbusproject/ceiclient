@@ -7,7 +7,7 @@ import json
 
 import ceiclient
 from ceiclient.client import SERVICES
-from ceiclient.connection import DashiCeiConnection
+from ceiclient.connection import DashiCeiConnection, PyonCeiConnection
 
 DEFAULT_RABBITMQ_USERNAME = 'guest'
 DEFAULT_RABBITMQ_PASSWORD = 'guest'
@@ -27,6 +27,7 @@ parser.add_argument('--json', '-J', action='store_const', const=True)
 parser.add_argument('--run-name', '-n', action='store', dest='run_name')
 parser.add_argument('--dashi-name', '-d', action='store', default=None)
 parser.add_argument('--caller', '-c', action='store', dest='caller', default=None)
+parser.add_argument('--pyon', '-P', action='store_const', const=True)
 
 subparsers = parser.add_subparsers(dest='service', help='Service to which to send a command')
 
@@ -55,7 +56,6 @@ if __name__ == '__main__':
     amqp_settings['rabbitmq_password'] = DEFAULT_RABBITMQ_PASSWORD
     amqp_settings['rabbitmq_exchange'] = DEFAULT_RABBITMQ_EXCHANGE
 
-
     # Read AMQP settings and credentials from the cloudinitd DB if possible
     if opts.run_name:
         amqp_settings = ceiclient.common.load_cloudinitd_db(opts.run_name)
@@ -70,10 +70,20 @@ if __name__ == '__main__':
     if opts.exchange:
         amqp_settings['rabbitmq_exchange'] = opts.exchange
 
-    conn = DashiCeiConnection(amqp_settings['rabbitmq_host'],
-            amqp_settings['rabbitmq_username'], amqp_settings['rabbitmq_password'],
-            exchange=amqp_settings['rabbitmq_exchange'], timeout=opts.timeout)
-    client = service(conn, dashi_name=opts.dashi_name)
+    if opts.pyon:
+        conn = PyonCeiConnection(amqp_settings['rabbitmq_host'],
+                amqp_settings['rabbitmq_username'],
+                amqp_settings['rabbitmq_password'],
+                exchange=amqp_settings['rabbitmq_exchange'],
+                timeout=opts.timeout)
+        client = service(conn, dashi_name=opts.dashi_name)
+    else:
+        conn = DashiCeiConnection(amqp_settings['rabbitmq_host'],
+                amqp_settings['rabbitmq_username'],
+                amqp_settings['rabbitmq_password'],
+                exchange=amqp_settings['rabbitmq_exchange'],
+                timeout=opts.timeout)
+        client = service(conn, dashi_name=opts.dashi_name)
 
     command = service.commands[opts.command]
     result = command.execute(client, opts)

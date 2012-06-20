@@ -6,6 +6,7 @@ from commands import DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSit
 from commands import DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials
 from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemove
 from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess
+from commands import PyonPDCreatePD, PyonPDUpdatePD, PyonPDReadPD, PyonPDDeletePD
 from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll
 
 
@@ -13,6 +14,73 @@ class CeiClient(object):
 
     def __init__(self, connection, dashi_name=None):
         pass
+
+
+class PyonCeiClientException(BaseException):
+    pass
+
+
+class PyonCeiClient(object):
+
+    def __init__(self, connection, **kwargs):
+        pass
+
+    def _make_pyon_message(self, original, key=None, type_=None):
+        """Take a dictionary of parameters, and add Pyon Boilerplate
+        """
+
+        if type_ is None:
+            raise PyonCeiClientException("You must supply a type_")
+
+        changed = original
+        if key is not None:
+            try:
+                to_change = original[key]
+            except KeyError:
+                msg = "You specified a key, but it isn't in the dict provided?"
+                raise PyonCeiClientException(msg)
+        else:
+            to_change = original
+
+        to_change['type_'] = type_
+
+        # Pyon Boilerplate
+        to_change['lcstate'] = 'DRAFT_PRIVATE'
+        to_change['definition_type'] = 1
+        to_change['description'] = ''
+        to_change['version'] = ''
+        to_change['arguments'] = []
+        to_change['ts_updated'] = ''
+        to_change['ts_created'] = ''
+
+        return changed
+
+    def _strip_pyon_attrs(self, original, key=None):
+        """Strip pyon metadata attributes
+        """
+
+        changed = original
+        if key is not None:
+            try:
+                to_change = original[key]
+            except KeyError:
+                msg = "You specified a key, but it isn't in the dict provided?"
+                raise PyonCeiClientException(msg)
+        else:
+            to_change = original
+
+        del(to_change['type_'])
+        del(to_change['lcstate'])
+        del(to_change['definition_type'])
+        del(to_change['description'])
+        del(to_change['version'])
+        del(to_change['arguments'])
+        del(to_change['ts_updated'])
+        del(to_change['ts_created'])
+        del(to_change['_id'])
+        del(to_change['_rev'])
+
+        return changed
 
 
 class DTRSDTClient(CeiClient):
@@ -107,6 +175,7 @@ class DTRSCredentialsClient(CeiClient):
     for command in  [DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials]:
         commands[command.name] = command
 
+
 class EPUMClient(CeiClient):
 
     dashi_name = 'epu_management_service'
@@ -136,6 +205,7 @@ class EPUMClient(CeiClient):
     commands = {}
     for command in [EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd, EPUMRemove]:
         commands[command.name] = command
+
 
 class PDClient(CeiClient):
 
@@ -174,6 +244,91 @@ class PDClient(CeiClient):
     for command in [PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess]:
         commands[command.name] = command
 
+
+class PyonPDClient(PyonCeiClient):
+
+    service_name = 'process_dispatcher'
+    name = 'pyon_process'
+    help = 'Control the Pyon Process Dispatcher Service'
+
+    def __init__(self, connection, **kwargs):
+        self._connection = connection
+
+    def create_process_definition(self, process_definition=None):
+        if process_definition is None:
+            process_definition = {}
+
+        message = self._make_pyon_message(process_definition, key='process_definition', type_='ProcessDefinition')
+        return self._connection.call(self.service_name, 'create_process_definition', **message)
+
+    def update_process_definition(self, process_definition=None):
+        if process_definition is None:
+            process_definition = {}
+
+        message = self._make_pyon_message(process_definition, key='process_definition', type_='ProcessDefinition')
+        return self._connection.call(self.service_name, 'update_process_definition', **message)
+
+    def read_process_definition(self, process_definition_id=''):
+        message = {'process_definition_id': process_definition_id}
+        return self._strip_pyon_attrs(self._connection.call(self.service_name, 'read_process_definition', **message))
+
+    def delete_process_definition(self, process_definition_id=''):
+        message = {'process_definition_id': process_definition_id}
+        return self._connection.call(self.service_name, 'delete_process_definition', **message)
+
+    def associate_execution_engine(self, process_definition_id='', execution_engine_definition_id=''):
+        message = {
+            'process_definition_id': process_definition_id,
+            'execution_engine_definition_id': execution_engine_definition_id
+        }
+        return self._connection.call(self.service_name, 'associate_execution_engine', **message)
+
+    def dissociate_execution_engine(self, process_definition_id='', execution_engine_definition_id=''):
+        message = {
+            'process_definition_id': process_definition_id,
+            'execution_engine_definition_id': execution_engine_definition_id
+        }
+        return self._connection.call(self.service_name, 'associate_execution_engine', **message)
+
+    def create_process(self, process_definition_id=''):
+        message = {'process_definition_id': process_definition_id}
+        return self._connection.call(self.service_name, 'create_process', **message)
+
+    def schedule_process(self, process_definition_id='', schedule=None, configuration=None, process_id=''):
+        message = {'process_definition_id': process_definition_id}
+        return self._connection.call(self.service_name, 'schedule_process', **message)
+
+    def cancel_process(self, process_id=''):
+        message = {'process_definition_id': process_definition_id}
+        return self._connection.call(self.service_name, 'cancel_process', **message)
+
+#   def dispatch_process(self, upid, spec, subscribers, constraints, immediate=False):
+#       #return self._connection.call(self.dashi_name, 'dispatch_process',
+#                                    upid=upid, spec=spec,
+#                                    subscribers=subscribers,
+#                                    constraints=constraints,
+#                                    immediate=immediate)
+
+#   def describe_process(self, upid):
+#       return self._connection.call(self.dashi_name, 'describe_process', upid=upid)
+
+#   def describe_processes(self):
+#       return self._connection.call(self.dashi_name, 'describe_processes')
+
+#   def terminate_process(self, upid):
+#       return self._connection.call(self.dashi_name, 'terminate_process', upid=upid)
+
+#   def restart_process(self, upid):
+#       return self._connection.call(self.dashi_name, 'restart_process', upid=upid)
+
+#   def dump(self):
+#       return self._connection.call(self.dashi_name, 'dump')
+
+    commands = {}
+    for command in [PyonPDCreatePD, PyonPDUpdatePD, PyonPDReadPD, PyonPDDeletePD]:
+        commands[command.name] = command
+
+
 class ProvisionerClient(CeiClient):
 
     dashi_name = 'provisioner'
@@ -186,7 +341,7 @@ class ProvisionerClient(CeiClient):
         self._connection = connection
 
     def provision(self, deployable_type, site, allocation, vars, caller=None):
-        launch_id =  str(uuid.uuid4())
+        launch_id = str(uuid.uuid4())
         instance_ids = [str(uuid.uuid4())]
 
         return self._connection.call(self.dashi_name, 'provision',
@@ -210,5 +365,6 @@ class ProvisionerClient(CeiClient):
         commands[command.name] = command
 
 SERVICES = {}
-for service in [DTRSDTClient, DTRSSiteClient, DTRSCredentialsClient, EPUMClient, PDClient, ProvisionerClient]:
+for service in [DTRSDTClient, DTRSSiteClient, DTRSCredentialsClient, EPUMClient,
+            PDClient, ProvisionerClient, PyonPDClient]:
     SERVICES[service.name] = service
