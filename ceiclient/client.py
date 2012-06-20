@@ -6,6 +6,8 @@ from commands import DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCreden
 from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemove
 from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
 from commands import PyonPDCreatePD, PyonPDUpdatePD, PyonPDReadPD, PyonPDDeletePD
+from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
+from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess
 from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll
 
 
@@ -24,7 +26,7 @@ class PyonCeiClient(object):
     def __init__(self, connection, **kwargs):
         pass
 
-    def _make_pyon_message(self, original, key=None, type_=None):
+    def _format_pyon_dict(self, original, key=None, type_=None, definition_type=1):
         """Take a dictionary of parameters, and add Pyon Boilerplate
         """
 
@@ -45,7 +47,8 @@ class PyonCeiClient(object):
 
         # Pyon Boilerplate
         to_change['lcstate'] = 'DRAFT_PRIVATE'
-        to_change['definition_type'] = 1
+        if definition_type is not None:
+            to_change['definition_type'] = 1
         to_change['description'] = ''
         to_change['version'] = ''
         to_change['arguments'] = []
@@ -244,10 +247,10 @@ class PDClient(CeiClient):
         commands[command.name] = command
 
 
-class PyonPDClient(PyonCeiClient):
+class PyonPDProcessDefinitionClient(PyonCeiClient):
 
     service_name = 'process_dispatcher'
-    name = 'pyon_process'
+    name = 'process-definition'
     help = 'Control the Pyon Process Dispatcher Service'
 
     def __init__(self, connection, **kwargs):
@@ -257,14 +260,15 @@ class PyonPDClient(PyonCeiClient):
         if process_definition is None:
             process_definition = {}
 
-        message = self._make_pyon_message(process_definition, key='process_definition', type_='ProcessDefinition')
+        message = {}
+        message['process_definition'] = self._format_pyon_dict(process_definition, type_='ProcessDefinition')
         return self._connection.call(self.service_name, 'create_process_definition', **message)
 
     def update_process_definition(self, process_definition=None):
         if process_definition is None:
             process_definition = {}
 
-        message = self._make_pyon_message(process_definition, key='process_definition', type_='ProcessDefinition')
+        message = self._format_pyon_dict(process_definition, key='process_definition', type_='ProcessDefinition')
         return self._connection.call(self.service_name, 'update_process_definition', **message)
 
     def read_process_definition(self, process_definition_id=''):
@@ -274,6 +278,20 @@ class PyonPDClient(PyonCeiClient):
     def delete_process_definition(self, process_definition_id=''):
         message = {'process_definition_id': process_definition_id}
         return self._connection.call(self.service_name, 'delete_process_definition', **message)
+
+    commands = {}
+    for command in [PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition]:
+        commands[command.name] = command
+
+
+class PyonPDExecutionEngineClient(PyonCeiClient):
+
+    service_name = 'process_dispatcher'
+    name = 'execution-engine'
+    help = 'Control the Pyon Process Dispatcher Service'
+
+    def __init__(self, connection, **kwargs):
+        self._connection = connection
 
     def associate_execution_engine(self, process_definition_id='', execution_engine_definition_id=''):
         message = {
@@ -289,42 +307,55 @@ class PyonPDClient(PyonCeiClient):
         }
         return self._connection.call(self.service_name, 'associate_execution_engine', **message)
 
+    commands = {}
+    for command in [PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine]:
+        commands[command.name] = command
+
+
+class PyonPDProcessClient(PyonCeiClient):
+
+    service_name = 'process_dispatcher'
+    name = 'process'
+    help = 'Control the Pyon Process Dispatcher Service'
+
+    def __init__(self, connection, **kwargs):
+        self._connection = connection
+
     def create_process(self, process_definition_id=''):
         message = {'process_definition_id': process_definition_id}
         return self._connection.call(self.service_name, 'create_process', **message)
 
     def schedule_process(self, process_definition_id='', schedule=None, configuration=None, process_id=''):
-        message = {'process_definition_id': process_definition_id}
+        if schedule is None:
+            msg = "You must provide a process schedule"
+            sys.exit(msg)
+        if schedule.get('schedule_mode') is None:
+            msg = "You must provide a schedule mode"
+            sys.exit(msg)
+        if schedule.get('target') is None:
+            msg = "You must provide a schedule target"
+            sys.exit(msg)
+
+        if configuration is None:
+            configuration = {}
+
+        message = {}
+        message['process_definition_id'] = process_definition_id
+        message['schedule'] = schedule
+        message['schedule']['_type'] = 'ProcessSchedule'
+        message['schedule']['target'] = message['schedule'].get('target', {})
+        message['schedule']['target']['_type'] = 'ProcessTarget'
+        message['configuration'] = configuration
+        message['process_id'] = process_definition_id
+
         return self._connection.call(self.service_name, 'schedule_process', **message)
 
     def cancel_process(self, process_id=''):
         message = {'process_definition_id': process_definition_id}
         return self._connection.call(self.service_name, 'cancel_process', **message)
 
-#   def dispatch_process(self, upid, spec, subscribers, constraints, immediate=False):
-#       #return self._connection.call(self.dashi_name, 'dispatch_process',
-#                                    upid=upid, spec=spec,
-#                                    subscribers=subscribers,
-#                                    constraints=constraints,
-#                                    immediate=immediate)
-
-#   def describe_process(self, upid):
-#       return self._connection.call(self.dashi_name, 'describe_process', upid=upid)
-
-#   def describe_processes(self):
-#       return self._connection.call(self.dashi_name, 'describe_processes')
-
-#   def terminate_process(self, upid):
-#       return self._connection.call(self.dashi_name, 'terminate_process', upid=upid)
-
-#   def restart_process(self, upid):
-#       return self._connection.call(self.dashi_name, 'restart_process', upid=upid)
-
-#   def dump(self):
-#       return self._connection.call(self.dashi_name, 'dump')
-
     commands = {}
-    for command in [PyonPDCreatePD, PyonPDUpdatePD, PyonPDReadPD, PyonPDDeletePD]:
+    for command in [PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess]:
         commands[command.name] = command
 
 
@@ -363,7 +394,11 @@ class ProvisionerClient(CeiClient):
     for command in [ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll]:
         commands[command.name] = command
 
-SERVICES = {}
+DASHI_SERVICES = {}
 for service in [DTRSDTClient, DTRSSiteClient, DTRSCredentialsClient, EPUMClient,
-            PDClient, ProvisionerClient, PyonPDClient]:
-    SERVICES[service.name] = service
+            PDClient, ProvisionerClient, PyonPDProcessDefinitionClient]:
+    DASHI_SERVICES[service.name] = service
+
+PYON_SERVICES = {}
+for service in [PyonPDProcessDefinitionClient, PyonPDProcessClient, PyonPDExecutionEngineClient]:
+    PYON_SERVICES[service.name] = service

@@ -7,6 +7,7 @@ import time
 from jinja2 import Template
 import yaml
 
+
 class CeiCommand(object):
 
     def __init__(self, subparsers):
@@ -160,6 +161,7 @@ class DTRSUpdateSite(CeiCommand):
         stream.close()
         return client.update_site(opts.site_name, site_def)
 
+
 class DTRSAddCredentials(CeiCommand):
 
     name = 'add'
@@ -231,6 +233,7 @@ class DTRSUpdateCredentials(CeiCommand):
         stream.close()
         return client.update_credentials(opts.caller, opts.site_name, credentials_def)
 
+
 class EPUMAdd(CeiCommand):
 
     name = 'add'
@@ -246,6 +249,7 @@ class EPUMAdd(CeiCommand):
         conf = yaml.load(stream)
         stream.close()
         return client.add_domain(opts.domain_id, conf, caller=opts.caller)
+
 
 class EPUMRemove(CeiCommand):
 
@@ -282,6 +286,7 @@ Health:                  Monitor health  = {{result.config.health.monitor_health
         template = Template(EPUMDescribe.output_template)
         print template.render(result=result)
 
+
 class EPUMList(CeiCommand):
 
     name = 'list'
@@ -297,6 +302,7 @@ class EPUMList(CeiCommand):
     def output(result):
         for domain_id in result:
             print domain_id
+
 
 class EPUMReconfigure(CeiCommand):
 
@@ -359,9 +365,11 @@ class EPUMReconfigure(CeiCommand):
         updated_kvs = EPUMReconfigure.format_reconfigure(bool_reconfs=opts.updated_kv_bool, int_reconfs=opts.updated_kv_int, string_reconfs=opts.updated_kv_string)
         return client.reconfigure_domain(opts.domain_id, updated_kvs, caller=opts.caller)
 
+
 class PDDispatch(CeiCommand):
 
     name = 'dispatch'
+
     def __init__(self, subparsers):
 
         parser = subparsers.add_parser(self.name)
@@ -379,6 +387,7 @@ class PDDispatch(CeiCommand):
 
         return client.dispatch_process(str(uuid.uuid4().hex), process_spec, None, None, opts.immediate)
 
+
 class PDDescribeProcesses(CeiCommand):
 
     name = 'list'
@@ -389,6 +398,7 @@ class PDDescribeProcesses(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.describe_processes()
+
 
 class PDTerminateProcess(CeiCommand):
 
@@ -402,6 +412,7 @@ class PDTerminateProcess(CeiCommand):
     def execute(client, opts):
         return client.terminate_process(opts.process_id)
 
+
 class PDRestartProcess(CeiCommand):
 
     name = 'restart'
@@ -413,6 +424,7 @@ class PDRestartProcess(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.restart_process(opts.process_id)
+
 
 class PDDescribeProcess(CeiCommand):
 
@@ -479,9 +491,9 @@ class PDDump(CeiCommand):
 #heartbeat, sender_kwarg='sender'
 
 
-class PyonPDCreatePD(CeiCommand):
+class PyonPDCreateProcessDefinition(CeiCommand):
 
-    name = 'create_pd'
+    name = 'create'
 
     def __init__(self, subparsers):
 
@@ -500,9 +512,9 @@ class PyonPDCreatePD(CeiCommand):
         return client.create_process_definition(process_spec)
 
 
-class PyonPDUpdatePD(CeiCommand):
+class PyonPDUpdateProcessDefinition(CeiCommand):
 
-    name = 'update_pd'
+    name = 'update'
 
     def __init__(self, subparsers):
 
@@ -521,14 +533,14 @@ class PyonPDUpdatePD(CeiCommand):
         return client.update_process_definition(process_spec)
 
 
-class PyonPDReadPD(CeiCommand):
+class PyonPDReadProcessDefinition(CeiCommand):
 
-    name = 'read_pd'
+    name = 'read'
 
     def __init__(self, subparsers):
 
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('process_definition_id', metavar='xxxxxxx')
+        parser.add_argument('process_definition_id', metavar='pd_id')
 
     @staticmethod
     def execute(client, opts):
@@ -536,19 +548,111 @@ class PyonPDReadPD(CeiCommand):
         return client.read_process_definition(opts.process_definition_id)
 
 
-class PyonPDDeletePD(CeiCommand):
+class PyonPDDeleteProcessDefinition(CeiCommand):
 
-    name = 'delete_pd'
+    name = 'delete'
 
     def __init__(self, subparsers):
 
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('process_definition_id', metavar='xxxxxxx')
+        parser.add_argument('process_definition_id', metavar='pd_id')
 
     @staticmethod
     def execute(client, opts):
 
         return client.delete_process_definition(opts.process_definition_id)
+
+
+class PyonPDAssociateExecutionEngine(CeiCommand):
+
+    name = 'associate'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='pd_id')
+        parser.add_argument('execution_engine_definition_id', metavar='eed_id')
+
+    @staticmethod
+    def execute(client, opts):
+
+        return client.associate_execution_engine(opts.process_definition_id, opts.execution_engine_definition_id)
+
+
+class PyonPDDissociateExecutionEngine(CeiCommand):
+
+    name = 'dissociate'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='pd_id')
+        parser.add_argument('execution_engine_definition_id', metavar='eed_id')
+
+    @staticmethod
+    def execute(client, opts):
+
+        return client.dissociate_execution_engine(opts.process_definition_id, opts.execution_engine_definition_id)
+
+
+class PyonPDCreateProcess(CeiCommand):
+
+    name = 'create'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='pd_id')
+
+    @staticmethod
+    def execute(client, opts):
+
+        return client.create_process(opts.process_definition_id)
+
+
+class PyonPDScheduleProcess(CeiCommand):
+
+    name = 'schedule'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='pd_id')
+        parser.add_argument('schedule', metavar='process_schedule.yml')
+        parser.add_argument('configuration', metavar='ingestion_configuration.yml')
+        parser.add_argument('process_id', metavar='proc_id')
+
+    @staticmethod
+    def execute(client, opts):
+        try:
+            with open(opts.schedule) as f:
+                schedule = yaml.load(f)
+        except Exception, e:
+            print "Problem reading process schedule file %s: %s" % (opts.schedule, e)
+            sys.exit(1)
+
+        try:
+            with open(opts.configuration) as f:
+                configuration = yaml.load(f)
+        except Exception, e:
+            print "Problem reading ingestion configuration file %s: %s" % (opts.configuration, e)
+            sys.exit(1)
+        return client.schedule_process(opts.process_definition_id, schedule, configuration, opts.process_id)
+
+
+class PyonPDCancelProcess(CeiCommand):
+
+    name = 'cancel'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='pd_id')
+
+    @staticmethod
+    def execute(client, opts):
+
+        return client.cancel_process(opts.process_definition_id)
 
 
 class ProvisionerDump(CeiCommand):
@@ -564,6 +668,7 @@ class ProvisionerDump(CeiCommand):
         subscriber = str(uuid.uuid4())
         return client.dump_state([opts.node], subscriber)
 
+
 class ProvisionerDescribeNodes(CeiCommand):
 
     name = 'describe'
@@ -576,6 +681,7 @@ class ProvisionerDescribeNodes(CeiCommand):
     def execute(client, opts):
         nodes = opts.node or []
         return client.describe_nodes(nodes=nodes, caller=opts.caller)
+
 
 class ProvisionerProvision(CeiCommand):
 
@@ -603,6 +709,7 @@ class ProvisionerProvision(CeiCommand):
         vars['broker_password'] = client._connection.amqp_password
 
         return client.provision(opts.deployable_type, opts.site, opts.allocation, vars, caller=opts.caller)
+
 
 class ProvisionerTerminateAll(CeiCommand):
 
