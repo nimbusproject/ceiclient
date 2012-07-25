@@ -1,10 +1,8 @@
-import os
 import pprint
 import re
 import sys
 import uuid
 
-import kombu
 from jinja2 import Template
 import yaml
 

@@ -1,11 +1,14 @@
 import os
-from pprint import pprint
 
-import cloudinitd
-from cloudinitd.user_api import CloudInitD
-from cloudinitd.exceptions import APIUsageException, ConfigException
 
 def load_cloudinitd_db(run_name):
+
+    # doing imports within function because they are not needed elsewhere
+    # and they are surprisingly expensive.
+    # (and this is generally only called once)
+    from cloudinitd.user_api import CloudInitD
+    from cloudinitd.exceptions import APIUsageException, ConfigException
+
     vars = {}
     home = os.environ['HOME']
 
