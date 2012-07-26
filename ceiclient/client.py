@@ -5,7 +5,7 @@ from commands import DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSit
 from commands import DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials
 from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemove
 from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
-from commands import PyonPDCreatePD, PyonPDUpdatePD, PyonPDReadPD, PyonPDDeletePD
+from commands import PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition
 from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
 from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess
 from commands import PyonHAStatus, PyonHAReconfigurePolicy
