@@ -4,7 +4,7 @@ from commands import DTRSAddDT, DTRSDescribeDT, DTRSListDT, DTRSRemoveDT, DTRSUp
 from commands import DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSite, DTRSUpdateSite
 from commands import DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials
 from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemove
-from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess
+from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
 from commands import PyonPDCreatePD, PyonPDUpdatePD, PyonPDReadPD, PyonPDDeletePD
 from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll
 
@@ -240,7 +240,7 @@ class PDClient(CeiClient):
         return self._connection.call(self.dashi_name, 'dump')
 
     commands = {}
-    for command in [PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess]:
+    for command in [PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
         commands[command.name] = command
 
 
