@@ -32,7 +32,7 @@ parser.add_argument('--timeout', '-t', action='store', dest='timeout', type=int,
 parser.add_argument('--yaml', '-Y', action='store_const', const=True)
 parser.add_argument('--json', '-J', action='store_const', const=True)
 parser.add_argument('--run-name', '-n', action='store', dest='run_name')
-parser.add_argument('--dashi-name', '-d', action='store', default=None)
+parser.add_argument('--service-name', '-d', action='store', default=None)
 parser.add_argument('--caller', '-c', action='store', dest='caller', default=None)
 parser.add_argument('--pyon', '-P', action='store_const', const=True)
 
@@ -88,14 +88,14 @@ if __name__ == '__main__':
                 amqp_settings['rabbitmq_password'],
                 exchange=amqp_settings['rabbitmq_exchange'],
                 timeout=opts.timeout)
-        client = service(conn, dashi_name=opts.dashi_name)
+        client = service(conn, service_name=opts.service_name)
     else:
         conn = DashiCeiConnection(amqp_settings['rabbitmq_host'],
                 amqp_settings['rabbitmq_username'],
                 amqp_settings['rabbitmq_password'],
                 exchange=amqp_settings['rabbitmq_exchange'],
                 timeout=opts.timeout)
-        client = service(conn, dashi_name=opts.dashi_name)
+        client = service(conn, dashi_name=opts.service_name)
 
     command = service.commands[opts.command]
     result = command.execute(client, opts)

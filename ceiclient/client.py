@@ -8,6 +8,7 @@ from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTermi
 from commands import PyonPDCreatePD, PyonPDUpdatePD, PyonPDReadPD, PyonPDDeletePD
 from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
 from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess
+from commands import PyonHAStatus, PyonHAReconfigurePolicy
 from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll
 
 
@@ -351,11 +352,34 @@ class PyonPDProcessClient(PyonCeiClient):
         return self._connection.call(self.service_name, 'schedule_process', **message)
 
     def cancel_process(self, process_id=''):
-        message = {'process_definition_id': process_definition_id}
+        message = {'process_id': process_id}
         return self._connection.call(self.service_name, 'cancel_process', **message)
 
     commands = {}
     for command in [PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess]:
+        commands[command.name] = command
+
+
+class PyonHAAgentClient(PyonCeiClient):
+    service_name = 'high_availability_agent'
+    name = 'ha'
+    help = 'Control the Pyon High Availability Agent'
+
+    def __init__(self, connection, service_name=None, **kwargs):
+        if service_name is not None:
+            self.service_name = service_name
+        self._connection = connection
+
+    def status(self):
+        message = {}
+        return self._connection.call(self.service_name, 'rcmd_status', **message)
+
+    def reconfigure_policy(self, new_policy=None):
+        message = {'new_policy': new_policy}
+        return self._connection.call(self.service_name, 'rcmd_reconfigure_policy', **message)
+
+    commands = {}
+    for command in [PyonHAStatus, PyonHAReconfigurePolicy]:
         commands[command.name] = command
 
 
@@ -400,5 +424,6 @@ for service in [DTRSDTClient, DTRSSiteClient, DTRSCredentialsClient, EPUMClient,
     DASHI_SERVICES[service.name] = service
 
 PYON_SERVICES = {}
-for service in [PyonPDProcessDefinitionClient, PyonPDProcessClient, PyonPDExecutionEngineClient]:
+for service in [PyonPDProcessDefinitionClient, PyonPDProcessClient,
+        PyonPDExecutionEngineClient, PyonHAAgentClient]:
     PYON_SERVICES[service.name] = service

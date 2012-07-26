@@ -634,8 +634,8 @@ class PyonPDScheduleProcess(CeiCommand):
         try:
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
-        except Exception, e:
-            print "Problem reading ingestion configuration file %s: %s" % (opts.configuration, e)
+        except exception, e:
+            print "problem reading ingestion configuration file %s: %s" % (opts.configuration, e)
             sys.exit(1)
         return client.schedule_process(opts.process_definition_id, schedule, configuration, opts.process_id)
 
@@ -653,6 +653,37 @@ class PyonPDCancelProcess(CeiCommand):
     def execute(client, opts):
 
         return client.cancel_process(opts.process_definition_id)
+
+
+class PyonHAStatus(CeiCommand):
+
+    name = 'status'
+
+    def __init__(self, subparsers):
+        subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        return client.status()
+
+
+class PyonHAReconfigurePolicy(CeiCommand):
+
+    name = 'reconfigure_policy'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('policy', metavar='new_policy.yml')
+
+    @staticmethod
+    def execute(client, opts):
+        try:
+            with open(opts.policy) as f:
+                policy = yaml.load(f)
+        except Exception, e:
+            print "problem reading policy file %s: %s" % (opts.policy, e)
+            sys.exit(1)
+        return client.reconfigure_policy(policy)
 
 
 class ProvisionerDump(CeiCommand):
