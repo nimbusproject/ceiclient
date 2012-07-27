@@ -241,14 +241,15 @@ class EPUMAdd(CeiCommand):
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('domain_id', action='store', help='The name of the domain to be added.')
-        parser.add_argument('--conf', dest='de_conf', action='store', help='Set the type of decision engine to use.')
+        parser.add_argument('--definition', dest='definition_id', action='store', help='The name of the domain definition to use.')
+        parser.add_argument('--conf', dest='de_conf', action='store', help='Additional configuration for the decision engine.')
 
     @staticmethod
     def execute(client, opts):
         stream = open(opts.de_conf, 'r')
         conf = yaml.load(stream)
         stream.close()
-        return client.add_domain(opts.domain_id, conf, caller=opts.caller)
+        return client.add_domain(opts.domain_id, opts.definition_id, conf, caller=opts.caller)
 
 
 class EPUMRemove(CeiCommand):
@@ -364,6 +365,83 @@ class EPUMReconfigure(CeiCommand):
     def execute(client, opts):
         updated_kvs = EPUMReconfigure.format_reconfigure(bool_reconfs=opts.updated_kv_bool, int_reconfs=opts.updated_kv_int, string_reconfs=opts.updated_kv_string)
         return client.reconfigure_domain(opts.domain_id, updated_kvs, caller=opts.caller)
+
+
+class EPUMAddDefinition(CeiCommand):
+
+    name = 'add'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('definition_id', action='store', help='The name of the domain definition to be added')
+        parser.add_argument('--definition', dest='definition', action='store', help='File containing the domain definition description')
+
+    @staticmethod
+    def execute(client, opts):
+        stream = open(opts.definition, 'r')
+        definition = yaml.load(stream)
+        stream.close()
+        return client.add_domain_definition(opts.definition_id, definition)
+
+
+class EPUMRemoveDefinition(CeiCommand):
+
+    name = 'remove'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('definition_id', action='store', help='The definition domain to remove')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.remove_domain_definition(opts.definition_id)
+
+
+class EPUMDescribeDefinition(CeiCommand):
+
+    name = 'describe'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('definition_id', action='store', help='The definition domain to describe')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.describe_domain_definition(opts.definition_id)
+
+
+class EPUMListDefinitions(CeiCommand):
+
+    name = 'list'
+
+    def __init__(self, subparsers):
+        subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        return client.list_domain_definitions()
+
+    @staticmethod
+    def output(result):
+        for definition_id in result:
+            print definition_id
+
+
+class EPUMUpdateDefinition(CeiCommand):
+
+    name = 'update'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('definition_id', action='store', help='The domain definition to reconfigure')
+        parser.add_argument('--definition', dest='definition', action='store', help='File containing the new domain definition')
+
+    @staticmethod
+    def execute(client, opts):
+        stream = open(opts.definition, 'r')
+        definition = yaml.load(stream)
+        stream.close()
+        return client.update_domain_definition(opts.definition_id, definition)
 
 
 class PDDispatch(CeiCommand):

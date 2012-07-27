@@ -4,6 +4,7 @@ from commands import DTRSAddDT, DTRSDescribeDT, DTRSListDT, DTRSRemoveDT, DTRSUp
 from commands import DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSite, DTRSUpdateSite
 from commands import DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials
 from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemove
+from commands import EPUMAddDefinition, EPUMDescribeDefinition, EPUMListDefinitions, EPUMRemoveDefinition, EPUMUpdateDefinition
 from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
 from commands import PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition
 from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
@@ -183,7 +184,7 @@ class EPUMClient(CeiClient):
 
     dashi_name = 'epu_management_service'
     name = 'domain'
-    help = 'Control the EPU Management Service'
+    help = 'Control domains in the EPU Management Service'
 
     def __init__(self, connection, dashi_name=None):
         if dashi_name:
@@ -199,14 +200,45 @@ class EPUMClient(CeiClient):
     def reconfigure_domain(self, name, config, caller=None):
         return self._connection.call(self.dashi_name, 'reconfigure_domain', domain_id=name, config=config, caller=caller)
 
-    def add_domain(self, name, config, caller=None):
-        return self._connection.call(self.dashi_name, 'add_domain', domain_id=name, config=config, caller=caller)
+    def add_domain(self, name, definition_id, config, caller=None):
+        return self._connection.call(self.dashi_name, 'add_domain', domain_id=name, definition_id=definition_id, config=config, caller=caller)
 
     def remove_domain(self, name, caller=None):
         return self._connection.call(self.dashi_name, 'remove_domain', domain_id=name, caller=caller)
 
     commands = {}
     for command in [EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd, EPUMRemove]:
+        commands[command.name] = command
+
+
+class EPUMDefinitionClient(CeiClient):
+
+    dashi_name = 'epu_management_service'
+    name = 'definition'
+    help = 'Control domain definitions in the EPU Management Service'
+
+    def __init__(self, connection, dashi_name=None):
+        if dashi_name:
+            self.dashi_name = dashi_name
+        self._connection = connection
+
+    def describe_domain_definition(self, name):
+        return self._connection.call(self.dashi_name, 'describe_domain_definition', definition_id=name)
+
+    def list_domain_definitions(self):
+        return self._connection.call(self.dashi_name, 'list_domain_definitions')
+
+    def update_domain_definition(self, name, definition):
+        return self._connection.call(self.dashi_name, 'update_domain_definition', definition_id=name, definition=definition)
+
+    def add_domain_definition(self, name, definition):
+        return self._connection.call(self.dashi_name, 'add_domain_definition', definition_id=name, definition=definition)
+
+    def remove_domain_definition(self, name):
+        return self._connection.call(self.dashi_name, 'remove_domain_definition', definition_id=name)
+
+    commands = {}
+    for command in [EPUMDescribeDefinition, EPUMListDefinitions, EPUMUpdateDefinition, EPUMAddDefinition, EPUMRemoveDefinition]:
         commands[command.name] = command
 
 
@@ -419,8 +451,9 @@ class ProvisionerClient(CeiClient):
         commands[command.name] = command
 
 DASHI_SERVICES = {}
-for service in [DTRSDTClient, DTRSSiteClient, DTRSCredentialsClient, EPUMClient,
-            PDClient, ProvisionerClient, PyonPDProcessDefinitionClient]:
+for service in [DTRSDTClient, DTRSSiteClient, DTRSCredentialsClient,
+        EPUMClient, EPUMDefinitionClient, PDClient, ProvisionerClient,
+        PyonPDProcessDefinitionClient]:
     DASHI_SERVICES[service.name] = service
 
 PYON_SERVICES = {}
