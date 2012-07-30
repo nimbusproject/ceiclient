@@ -8,7 +8,7 @@ from commands import EPUMAddDefinition, EPUMDescribeDefinition, EPUMListDefiniti
 from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
 from commands import PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition
 from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
-from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess
+from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses
 from commands import PyonHAStatus, PyonHAReconfigurePolicy
 from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll
 
@@ -63,6 +63,12 @@ class PyonCeiClient(object):
         """Strip pyon metadata attributes
         """
 
+        def del_if_present(_dict, key):
+            try:
+                del(_dict[key])
+            except KeyError:
+                pass
+
         changed = original
         if key is not None:
             try:
@@ -73,16 +79,16 @@ class PyonCeiClient(object):
         else:
             to_change = original
 
-        del(to_change['type_'])
-        del(to_change['lcstate'])
-        del(to_change['definition_type'])
-        del(to_change['description'])
-        del(to_change['version'])
-        del(to_change['arguments'])
-        del(to_change['ts_updated'])
-        del(to_change['ts_created'])
-        del(to_change['_id'])
-        del(to_change['_rev'])
+        del_if_present(to_change, 'type_')
+        del_if_present(to_change, 'lcstate')
+        del_if_present(to_change, 'definition_type')
+        del_if_present(to_change, 'description')
+        del_if_present(to_change, 'version')
+        del_if_present(to_change, 'arguments')
+        del_if_present(to_change, 'ts_updated')
+        del_if_present(to_change, 'ts_created')
+        del_if_present(to_change, '_id')
+        del_if_present(to_change, '_rev')
 
         return changed
 
@@ -387,8 +393,20 @@ class PyonPDProcessClient(PyonCeiClient):
         message = {'process_id': process_id}
         return self._connection.call(self.service_name, 'cancel_process', **message)
 
+    def read_process(self, process_id=''):
+        message = {'process_id': process_id}
+        return self._strip_pyon_attrs(self._connection.call(self.service_name, 'read_process', **message))
+
+    def list_processes(self):
+        message = {}
+        response = self._connection.call(self.service_name, 'list_processes', **message)
+        cleaned_list = []
+        for pyon_proc in response:
+            cleaned_list.append(self._strip_pyon_attrs(pyon_proc))
+        return cleaned_list
+
     commands = {}
-    for command in [PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess]:
+    for command in [PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses]:
         commands[command.name] = command
 
 

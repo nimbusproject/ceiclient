@@ -723,14 +723,37 @@ class PyonPDCancelProcess(CeiCommand):
     name = 'cancel'
 
     def __init__(self, subparsers):
-
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('process_definition_id', metavar='pd_id')
+        parser.add_argument('process_id', metavar='pd_id')
 
     @staticmethod
     def execute(client, opts):
-
         return client.cancel_process(opts.process_definition_id)
+
+
+class PyonPDReadProcess(CeiCommand):
+
+    name = 'read'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_id', metavar='pd_id')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.read_process(opts.process_id)
+
+
+class PyonPDListProcesses(CeiCommand):
+
+    name = 'list'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        return client.list_processes()
 
 
 class PyonHAStatus(CeiCommand):
