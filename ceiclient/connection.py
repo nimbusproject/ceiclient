@@ -41,8 +41,8 @@ class PyonCeiConnection(CeiConnection):
 
     _name = 'ceiclient'
 
-    def __init__(self, broker, username, password, vhost='/', exchange=None,
-            timeout=None, port=5672, ssl=False):
+    def __init__(self, broker, username, password, vhost='/',
+            sysname=None, timeout=None, port=5672, ssl=False):
 
         try:
             from pyon.net.messaging import make_node
@@ -63,7 +63,7 @@ class PyonCeiConnection(CeiConnection):
         }
         self.timeout = timeout
 
-        self.sysname = exchange or get_default_sysname()
+        self.sysname = sysname or get_default_sysname()
 
         node, ioloop = make_node(connection_params=self.connection_params,
                 timeout=self.timeout)
