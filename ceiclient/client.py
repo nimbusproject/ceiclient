@@ -295,12 +295,14 @@ class PyonPDProcessDefinitionClient(PyonCeiClient):
     def __init__(self, connection, **kwargs):
         self._connection = connection
 
-    def create_process_definition(self, process_definition=None):
+    def create_process_definition(self, process_definition=None, process_definition_id=None):
         if process_definition is None:
             process_definition = {}
 
         message = {}
         message['process_definition'] = self._format_pyon_dict(process_definition, type_='ProcessDefinition')
+        if process_definition_id is not None:
+            message['process_definition_id'] = process_definition_id
         return self._connection.call(self.service_name, 'create_process_definition', **message)
 
     def update_process_definition(self, process_definition=None):

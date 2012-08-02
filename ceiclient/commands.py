@@ -576,6 +576,7 @@ class PyonPDCreateProcessDefinition(CeiCommand):
 
         parser = subparsers.add_parser(self.name)
         parser.add_argument('process_spec', metavar='process_spec.yml')
+        parser.add_argument('-i', '--definition-id', dest="definition_id", metavar='ID')
 
     @staticmethod
     def execute(client, opts):
@@ -586,7 +587,7 @@ class PyonPDCreateProcessDefinition(CeiCommand):
             print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
             sys.exit(1)
 
-        return client.create_process_definition(process_spec)
+        return client.create_process_definition(process_spec, opts.definition_id)
 
 
 class PyonPDUpdateProcessDefinition(CeiCommand):
@@ -696,7 +697,7 @@ class PyonPDScheduleProcess(CeiCommand):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('process_definition_id', metavar='pd_id')
         parser.add_argument('schedule', metavar='process_schedule.yml')
-        parser.add_argument('configuration', metavar='ingestion_configuration.yml')
+        parser.add_argument('configuration', metavar='process_configuration.yml')
         parser.add_argument('process_id', metavar='proc_id')
 
     @staticmethod
@@ -712,7 +713,7 @@ class PyonPDScheduleProcess(CeiCommand):
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
         except exception, e:
-            print "problem reading ingestion configuration file %s: %s" % (opts.configuration, e)
+            print "problem reading process configuration file %s: %s" % (opts.configuration, e)
             sys.exit(1)
         return client.schedule_process(opts.process_definition_id, schedule, configuration, opts.process_id)
 
