@@ -452,7 +452,6 @@ class PDDispatch(CeiCommand):
 
         parser = subparsers.add_parser(self.name)
         parser.add_argument('process_spec', metavar='process_spec.yml')
-        parser.add_argument('--immediate', '-i', action='store_const', const=True, default=False)
 
     @staticmethod
     def execute(client, opts):
@@ -463,7 +462,7 @@ class PDDispatch(CeiCommand):
             print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
             sys.exit(1)
 
-        return client.dispatch_process(str(uuid.uuid4().hex), process_spec, None, None, opts.immediate)
+        return client.dispatch_process(str(uuid.uuid4().hex), process_spec, None, None)
 
 
 class PDDescribeProcesses(CeiCommand):

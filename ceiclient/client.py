@@ -1,3 +1,4 @@
+import sys
 import uuid
 
 from commands import DTRSAddDT, DTRSDescribeDT, DTRSListDT, DTRSRemoveDT, DTRSUpdateDt
@@ -259,12 +260,11 @@ class PDClient(CeiClient):
             self.dashi_name = dashi_name
         self._connection = connection
 
-    def dispatch_process(self, upid, spec, subscribers, constraints, immediate=False):
+    def dispatch_process(self, upid, spec, subscribers, constraints):
         return self._connection.call(self.dashi_name, 'dispatch_process',
                                      upid=upid, spec=spec,
                                      subscribers=subscribers,
-                                     constraints=constraints,
-                                     immediate=immediate)
+                                     constraints=constraints)
 
     def describe_process(self, upid):
         return self._connection.call(self.dashi_name, 'describe_process', upid=upid)
@@ -367,9 +367,6 @@ class PyonPDProcessClient(PyonCeiClient):
     def schedule_process(self, process_definition_id='', schedule=None, configuration=None, process_id=''):
         if schedule is None:
             msg = "You must provide a process schedule"
-            sys.exit(msg)
-        if schedule.get('schedule_mode') is None:
-            msg = "You must provide a schedule mode"
             sys.exit(msg)
         if schedule.get('target') is None:
             msg = "You must provide a schedule target"
