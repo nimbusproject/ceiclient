@@ -641,6 +641,20 @@ class PyonPDDeleteProcessDefinition(CeiCommand):
         return client.delete_process_definition(opts.process_definition_id)
 
 
+class PyonPDListProcessDefinitions(CeiCommand):
+
+    name = 'list'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+
+        return client.list_process_definitions()
+
+
 class PyonPDAssociateExecutionEngine(CeiCommand):
 
     name = 'associate'

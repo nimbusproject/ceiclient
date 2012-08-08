@@ -7,7 +7,7 @@ from commands import DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCreden
 from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemove
 from commands import EPUMAddDefinition, EPUMDescribeDefinition, EPUMListDefinitions, EPUMRemoveDefinition, EPUMUpdateDefinition
 from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
-from commands import PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition
+from commands import PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions
 from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
 from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses
 from commands import PyonHAStatus, PyonHAReconfigurePolicy
@@ -183,7 +183,7 @@ class DTRSCredentialsClient(CeiClient):
         return self._connection.call(self.dashi_name, 'update_credentials', caller=caller, site_name=site_name, site_credentials=site_credentials)
 
     commands = {}
-    for command in  [DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials]:
+    for command in [DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials]:
         commands[command.name] = command
 
 
@@ -300,6 +300,8 @@ class PyonPDProcessDefinitionClient(PyonCeiClient):
             process_definition = {}
 
         message = {}
+        if process_definition_id is not None:
+            message['process_definition_id'] = process_definition_id
         message['process_definition'] = self._format_pyon_dict(process_definition, type_='ProcessDefinition')
         if process_definition_id is not None:
             message['process_definition_id'] = process_definition_id
@@ -320,8 +322,12 @@ class PyonPDProcessDefinitionClient(PyonCeiClient):
         message = {'process_definition_id': process_definition_id}
         return self._connection.call(self.service_name, 'delete_process_definition', **message)
 
+    def list_process_definitions(self):
+        message = {}
+        return self._connection.call(self.service_name, 'list_process_definitions', **message)
+
     commands = {}
-    for command in [PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition]:
+    for command in [PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions]:
         commands[command.name] = command
 
 
@@ -380,9 +386,9 @@ class PyonPDProcessClient(PyonCeiClient):
         message = {}
         message['process_definition_id'] = process_definition_id
         message['schedule'] = schedule
-        message['schedule']['_type'] = 'ProcessSchedule'
+        message['schedule']['type_'] = 'ProcessSchedule'
         message['schedule']['target'] = message['schedule'].get('target', {})
-        message['schedule']['target']['_type'] = 'ProcessTarget'
+        message['schedule']['target']['type_'] = 'ProcessTarget'
         message['configuration'] = configuration
         message['process_id'] = process_definition_id
 
