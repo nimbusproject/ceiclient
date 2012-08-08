@@ -9,7 +9,7 @@ from commands import EPUMAddDefinition, EPUMDescribeDefinition, EPUMListDefiniti
 from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
 from commands import PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions
 from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
-from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses
+from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses, PyonPDWaitProcess
 from commands import PyonHAStatus, PyonHAReconfigurePolicy
 from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll
 
@@ -411,7 +411,7 @@ class PyonPDProcessClient(PyonCeiClient):
         return cleaned_list
 
     commands = {}
-    for command in [PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses]:
+    for command in [PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses, PyonPDWaitProcess]:
         commands[command.name] = command
 
 

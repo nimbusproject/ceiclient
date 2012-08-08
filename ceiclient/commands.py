@@ -770,6 +770,42 @@ class PyonPDListProcesses(CeiCommand):
         return client.list_processes()
 
 
+class PyonPDWaitProcess(CeiCommand):
+
+    name = 'wait'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_id', action='store',
+                help='The UPID of the process to wait on')
+        parser.add_argument('--max', action='store', type=float, default=9600,
+                help='Max seconds to wait for process state')
+        parser.add_argument('--poll', action='store', type=float, default=0.5,
+                help='Seconds to wait between polls')
+
+    @staticmethod
+    def execute(client, opts):
+
+        deadline = time.time() + opts.max
+        while 1:
+            process = client.read_process(opts.process_id)
+
+            if process:
+                state = process['state']
+
+                if state == "500-RUNNING":
+                    return process
+
+                if state in ("850-FAILED", "900-REJECTED"):
+                    print "FAILED. Process in %s state" % state
+                    sys.exit(1)
+
+            if time.time() + opts.poll >= deadline:
+                print "Timed out waiting for process %s" % opts.process_id
+                sys.exit(1)
+            time.sleep(opts.poll)
+
+
 class PyonHAStatus(CeiCommand):
 
     name = 'status'
