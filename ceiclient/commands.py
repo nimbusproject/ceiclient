@@ -791,7 +791,7 @@ class PyonPDWaitProcess(CeiCommand):
             process = client.read_process(opts.process_id)
 
             if process:
-                state = process['state']
+                state = process['process_state']
 
                 if state == "500-RUNNING":
                     return process
