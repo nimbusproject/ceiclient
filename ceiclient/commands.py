@@ -687,6 +687,24 @@ class PyonPDDissociateExecutionEngine(CeiCommand):
         return client.dissociate_execution_engine(opts.process_definition_id, opts.execution_engine_definition_id)
 
 
+class ProcessStateEnum(object):
+    """WARNING: THIS COULD CHANGE
+    """
+    SPAWN = 1
+    TERMINATE = 2
+    ERROR = 3
+
+    _str_map = {
+        "1": "SPAWN",
+        "2": "TERMINATE",
+        "3": "ERROR"
+    }
+
+    @staticmethod
+    def to_str(int_state):
+        return ProcessStateEnum._str_map.get(str(int_state))
+
+
 class PyonPDCreateProcess(CeiCommand):
 
     name = 'create'
@@ -793,11 +811,11 @@ class PyonPDWaitProcess(CeiCommand):
             if process:
                 state = process['process_state']
 
-                if state == "500-RUNNING":
+                if state == ProcessStateEnum.SPAWN:
                     return process
 
-                if state in ("850-FAILED", "900-REJECTED"):
-                    print "FAILED. Process in %s state" % state
+                if state in (ProcessStateEnum.ERROR, ProcessStateEnum.TERMINATE):
+                    print "FAILED. Process in %s state" % ProcessStateEnum.to_str(state)
                     sys.exit(1)
 
             if time.time() + opts.poll >= deadline:
