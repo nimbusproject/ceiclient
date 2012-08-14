@@ -811,10 +811,10 @@ class PyonPDWaitProcess(CeiCommand):
             if process:
                 state = process['process_state']
 
-                if state == ProcessStateEnum.SPAWN:
+                if state in (ProcessStateEnum.SPAWN, ProcessStateEnum.TERMINATE):
                     return process
 
-                if state in (ProcessStateEnum.ERROR, ProcessStateEnum.TERMINATE):
+                if state in (ProcessStateEnum.ERROR,):
                     print "FAILED. Process in %s state" % ProcessStateEnum.to_str(state)
                     sys.exit(1)
 
