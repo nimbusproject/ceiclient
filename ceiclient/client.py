@@ -69,6 +69,8 @@ class PyonCeiClient(object):
                 del(_dict[key])
             except KeyError:
                 pass
+            except TypeError:
+                pass
 
         changed = original
         if key is not None:
