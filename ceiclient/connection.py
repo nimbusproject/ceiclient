@@ -1,7 +1,9 @@
 import sys
+import traceback
 from dashi import DashiConnection
 from dashi.bootstrap import DEFAULT_EXCHANGE
 
+PYON_RETRIES = 5
 
 class CeiConnection(object):
     """Abstract class defining the interface to talk with CEI services"""
@@ -48,10 +50,12 @@ class PyonCeiConnection(CeiConnection):
             from pyon.net.messaging import make_node
             from pyon.net.endpoint import RPCClient
             from pyon.util.containers import get_default_sysname
+            import pyon.core.exception as pyonexception
         except ImportError:
             err = "Pyon isn't available in your environment"
             sys.exit(err)
 
+        self.pyonexception = pyonexception
         self.RPCClient = RPCClient
 
         self.connection_params = {
@@ -84,10 +88,29 @@ class PyonCeiConnection(CeiConnection):
         self.pyon_node = node
         self.pyon_ioloop = ioloop
 
-    def call(self, service, operation, **kwargs):
+    def call(self, service, operation, retry=PYON_RETRIES, **kwargs):
+
+        pyonex = self.pyonexception
+
         to_name = (self.sysname, service)
         client = self.RPCClient(node=self.pyon_node, to_name=to_name)
-        return client.request(kwargs, op=operation)
+        for i in range(0, retry):
+            try:
+                ret = client.request(kwargs, op=operation)
+                break
+            except pyonex.IonException, e:
+                if e.status_code in (pyonex.TIMEOUT, pyonex.SERVER_ERROR,
+                        pyonex.SERVICE_UNAVAILABLE):
+                    print >> sys.stderr, "Problem calling Pyon, retry %s" % i
+                    print >> sys.stderr, traceback.format_exc()
+                    continue
+                else:
+                    raise
+        else:
+            msg = "Tried %s times to do %s. Giving up." % (retry, operation)
+            sys.exit(msg)
+
+        return ret
 
     def fire(self, service, operation, **kwargs):
         to_name = (self.sysname, service)
