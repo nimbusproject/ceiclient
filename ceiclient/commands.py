@@ -760,7 +760,7 @@ class PyonPDCancelProcess(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        return client.cancel_process(opts.process_definition_id)
+        return client.cancel_process(opts.process_id)
 
 
 class PyonPDReadProcess(CeiCommand):
