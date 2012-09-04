@@ -6,7 +6,8 @@ from commands import DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSit
 from commands import DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials
 from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemove
 from commands import EPUMAddDefinition, EPUMDescribeDefinition, EPUMListDefinitions, EPUMRemoveDefinition, EPUMUpdateDefinition
-from commands import PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
+from commands import PDSchedule, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
+from commands import PDCreateProcessDefinition, PDDescribeProcessDefinition, PDUpdateProcessDefinition, PDRemoveProcessDefinition, PDListProcessDefinitions
 from commands import PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions
 from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
 from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses, PyonPDWaitProcess
@@ -250,6 +251,65 @@ class EPUMDefinitionClient(CeiClient):
     for command in [EPUMDescribeDefinition, EPUMListDefinitions, EPUMUpdateDefinition, EPUMAddDefinition, EPUMRemoveDefinition]:
         commands[command.name] = command
 
+class PDProcessDefinitionClient(CeiClient):
+
+    dashi_name = 'processdispatcher'
+    name = 'process-definition'
+    help = 'Control the Process Dispatcher Service'
+
+    def __init__(self, connection, dashi_name=None):
+        if dashi_name:
+            self.dashi_name = dashi_name
+        self._connection = connection
+
+    def create_process_definition(self, process_definition=None, process_definition_id=None):
+        if process_definition is None:
+            msg = "You must provide a process defintion"
+            sys.exit(msg)
+
+        if process_definition_id is None:
+            msg = "You must provide a process defintion id"
+            sys.exit(msg)
+
+        executable = process_definition.get('executable')
+        definition_type = process_definition.get('definition_type')
+        name = process_definition.get('name')
+        description = process_definition.get('description')
+        args = dict(definition_id=process_definition_id, definition_type=definition_type,
+            executable=executable, name=name, description=description)
+        # TODO: what is definition_type?
+        return self._connection.call(self.dashi_name, 'create_definition', args=args)
+
+    def update_process_definition(self, process_definition=None, process_definition_id=None):
+        if process_definition is None:
+            msg = "You must provide a process defintion"
+            sys.exit(msg)
+
+        if process_definition_id is None:
+            msg = "You must provide a process defintion id"
+            sys.exit(msg)
+
+        executable = process_definition.get('executable')
+        definition_type = process_definition.get('type')
+        name = process_definition.get('name')
+        description = process_definition.get('description')
+        # TODO: what is definition_type?
+        return self._connection.call(self.dashi_name, 'update_definition',
+                definition_id=process_definition_id, executable=executable,
+                definition_type=definition_type, name=name, description=description)
+
+    def describe_process_definition(self, process_definition_id=''):
+        return self._connection.call(self.dashi_name, 'describe_definition', definition_id=process_definition_id)
+
+    def remove_process_definition(self, process_definition_id=''):
+        return self._connection.call(self.dashi_name, 'remove_definition', definition_id=process_definition_id)
+
+    def list_process_definitions(self):
+        return self._connection.call(self.dashi_name, 'list_definitions')
+
+    commands = {}
+    for command in [PDCreateProcessDefinition, PDUpdateProcessDefinition, PDDescribeProcessDefinition, PDRemoveProcessDefinition, PDListProcessDefinitions]:
+        commands[command.name] = command
 
 class PDClient(CeiClient):
 
@@ -262,11 +322,11 @@ class PDClient(CeiClient):
             self.dashi_name = dashi_name
         self._connection = connection
 
-    def dispatch_process(self, upid, spec, subscribers, constraints):
-        return self._connection.call(self.dashi_name, 'dispatch_process',
-                                     upid=upid, spec=spec,
-                                     subscribers=subscribers,
-                                     constraints=constraints)
+    def schedule_process(self, upid, process_definition_id, subscribers, constraints):
+        args = dict(upid=upid, definition_id=process_definition_id,
+                       subscribers=subscribers, constraints=constraints)
+        return self._connection.call(self.dashi_name, 'schedule_process',
+                                     args=args)
 
     def describe_process(self, upid):
         return self._connection.call(self.dashi_name, 'describe_process', upid=upid)
@@ -284,7 +344,7 @@ class PDClient(CeiClient):
         return self._connection.call(self.dashi_name, 'dump')
 
     commands = {}
-    for command in [PDDispatch, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
+    for command in [PDSchedule, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
         commands[command.name] = command
 
 
@@ -309,11 +369,16 @@ class PyonPDProcessDefinitionClient(PyonCeiClient):
             message['process_definition_id'] = process_definition_id
         return self._connection.call(self.service_name, 'create_process_definition', **message)
 
-    def update_process_definition(self, process_definition=None):
+    def update_process_definition(self, process_definition=None, process_definition_id=None):
         if process_definition is None:
             process_definition = {}
 
-        message = self._format_pyon_dict(process_definition, key='process_definition', type_='ProcessDefinition')
+        message = {}
+        if process_definition_id is not None:
+            message['process_definition_id'] = process_definition_id
+        message['process_definition'] = self._format_pyon_dict(process_definition, type_='ProcessDefinition')
+        if process_definition_id is not None:
+            message['process_definition_id'] = process_definition_id
         return self._connection.call(self.service_name, 'update_process_definition', **message)
 
     def read_process_definition(self, process_definition_id=''):
@@ -477,8 +542,8 @@ class ProvisionerClient(CeiClient):
 
 DASHI_SERVICES = {}
 for service in [DTRSDTClient, DTRSSiteClient, DTRSCredentialsClient,
-        EPUMClient, EPUMDefinitionClient, PDClient, ProvisionerClient,
-        PyonPDProcessDefinitionClient]:
+        EPUMClient, EPUMDefinitionClient, PDClient, PDProcessDefinitionClient,
+        ProvisionerClient, ]:
     DASHI_SERVICES[service.name] = service
 
 PYON_SERVICES = {}

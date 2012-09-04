@@ -444,14 +444,14 @@ class EPUMUpdateDefinition(CeiCommand):
         return client.update_domain_definition(opts.definition_id, definition)
 
 
-class PDDispatch(CeiCommand):
+class PDCreateProcessDefinition(CeiCommand):
 
-    name = 'dispatch'
+    name = 'create'
 
     def __init__(self, subparsers):
-
         parser = subparsers.add_parser(self.name)
         parser.add_argument('process_spec', metavar='process_spec.yml')
+        parser.add_argument('-i', '--definition-id', dest="definition_id", metavar='ID')
 
     @staticmethod
     def execute(client, opts):
@@ -462,7 +462,110 @@ class PDDispatch(CeiCommand):
             print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
             sys.exit(1)
 
-        return client.dispatch_process(str(uuid.uuid4().hex), process_spec, None, None)
+        return client.create_process_definition(process_definition=process_spec, 
+                process_definition_id=opts.definition_id)
+
+
+class PDDescribeProcessDefinition(CeiCommand):
+
+    name = 'describe'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='pd_id')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.describe_process_definition(opts.process_definition_id)
+
+
+class PDUpdateProcessDefinition(CeiCommand):
+
+    name = 'update'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_spec', metavar='process_spec.yml')
+        parser.add_argument('-i', '--definition-id', dest="definition_id", metavar='ID')
+
+    @staticmethod
+    def execute(client, opts):
+        try:
+            with open(opts.process_spec) as f:
+                process_spec = yaml.load(f)
+        except Exception, e:
+            print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
+            sys.exit(1)
+
+        return client.update_process_definition(process_spec, opts.definition_id)
+
+
+class PDRemoveProcessDefinition(CeiCommand):
+
+    name = 'remove'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='pd_id')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.remove_process_definition(opts.process_definition_id)
+
+
+class PDListProcessDefinitions(CeiCommand):
+
+    name = 'list'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        return client.list_process_definitions()
+
+
+class PDScheduleProcess(CeiCommand):
+
+    name = 'schedule'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='pd_id')
+        parser.add_argument('configuration', metavar='process_configuration.yml')
+        parser.add_argument('process_id', metavar='proc_id')
+
+    @staticmethod
+    def execute(client, opts):
+        try:
+            with open(opts.schedule) as f:
+                schedule = yaml.load(f)
+        except Exception, e:
+            print "Problem reading process schedule file %s: %s" % (opts.schedule, e)
+            sys.exit(1)
+
+        try:
+            with open(opts.configuration) as f:
+                configuration = yaml.load(f)
+        except exception, e:
+            print "problem reading process configuration file %s: %s" % (opts.configuration, e)
+            sys.exit(1)
+        return client.schedule_process(opts.process_definition_id, configuration, opts.process_id)
+
+
+class PDSchedule(CeiCommand):
+
+    name = 'schedule'
+
+    def __init__(self, subparsers):
+
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_definition_id', metavar='pd_id')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.schedule_process(str(uuid.uuid4().hex), opts.process_definition_id, None, None)
 
 
 class PDDescribeProcesses(CeiCommand):
@@ -598,6 +701,7 @@ class PyonPDUpdateProcessDefinition(CeiCommand):
 
         parser = subparsers.add_parser(self.name)
         parser.add_argument('process_spec', metavar='process_spec.yml')
+        parser.add_argument('-i', '--definition-id', dest="definition_id", metavar='ID')
 
     @staticmethod
     def execute(client, opts):
@@ -608,7 +712,7 @@ class PyonPDUpdateProcessDefinition(CeiCommand):
             print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
             sys.exit(1)
 
-        return client.update_process_definition(process_spec)
+        return client.update_process_definition(process_spec, opts.definition_id)
 
 
 class PyonPDReadProcessDefinition(CeiCommand):
