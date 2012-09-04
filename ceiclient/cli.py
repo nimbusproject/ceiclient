@@ -52,7 +52,7 @@ for service_name, service in SERVICES.items():
 
 opts = parser.parse_args()
 
-if __name__ == '__main__':
+def main():
     if opts.service not in SERVICES:
         raise ValueError('Service %s is not supported' % opts.service)
 
@@ -111,4 +111,6 @@ if __name__ == '__main__':
 
     conn.disconnect()
 
+if __name__ == '__main__':
+    main()
 

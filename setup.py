@@ -10,6 +10,10 @@ setup(name='ceiclient',
       author='Nimbus team',
       author_email='nimbus@mcs.anl.gov',
       packages=['ceiclient'],
-      scripts=['bin/ceictl'],
+      entry_points={
+          'console_scripts': [
+              'ceictl=ceiclient.cli:main'
+          ]
+      },
       install_requires=['cloudinitd==1.2', 'dashi', 'Jinja2', 'PyYAML', 'mock', 'nose'],
       test_suite='nose.collector')
