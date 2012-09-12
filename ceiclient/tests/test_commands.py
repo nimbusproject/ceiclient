@@ -4,7 +4,6 @@ import argparse
 import pprint
 
 from ceiclient.commands import EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd, EPUMRemove
-from ceiclient.commands import PDDispatch
 
 class TestCommandParsing:
 
