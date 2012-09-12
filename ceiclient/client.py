@@ -6,7 +6,7 @@ from commands import DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSit
 from commands import DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials
 from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemove
 from commands import EPUMAddDefinition, EPUMDescribeDefinition, EPUMListDefinitions, EPUMRemoveDefinition, EPUMUpdateDefinition
-from commands import PDSchedule, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
+from commands import PDScheduleProcess, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
 from commands import PDCreateProcessDefinition, PDDescribeProcessDefinition, PDUpdateProcessDefinition, PDRemoveProcessDefinition, PDListProcessDefinitions
 from commands import PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions
 from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
@@ -322,9 +322,14 @@ class PDClient(CeiClient):
             self.dashi_name = dashi_name
         self._connection = connection
 
-    def schedule_process(self, upid, process_definition_id, subscribers, constraints):
+    def schedule_process(self, upid, process_definition_id, configuration=None,
+            subscribers=None, constraints=None, queueing_mode=None,
+            restart_mode=None, execution_engine_id=None, node_exclusive=None):
         args = dict(upid=upid, definition_id=process_definition_id,
-                       subscribers=subscribers, constraints=constraints)
+               subscribers=subscribers, constraints=constraints,
+               configuration=configuration, queueing_mode=queueing_mode,
+               restart_mode=restart_mode, execution_engine_id=execution_engine_id,
+               node_exclusive=node_exclusive)
         return self._connection.call(self.dashi_name, 'schedule_process',
                                      args=args)
 
@@ -344,7 +349,7 @@ class PDClient(CeiClient):
         return self._connection.call(self.dashi_name, 'dump')
 
     commands = {}
-    for command in [PDSchedule, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
+    for command in [PDScheduleProcess, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
         commands[command.name] = command
 
 

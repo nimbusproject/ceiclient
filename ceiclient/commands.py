@@ -532,40 +532,24 @@ class PDScheduleProcess(CeiCommand):
     def __init__(self, subparsers):
 
         parser = subparsers.add_parser(self.name)
+        parser.add_argument('process_id', metavar='proc_id')
         parser.add_argument('process_definition_id', metavar='pd_id')
         parser.add_argument('configuration', metavar='process_configuration.yml')
-        parser.add_argument('process_id', metavar='proc_id')
+        parser.add_argument('--queueing-mode', metavar='queueing_mode')
+        parser.add_argument('--restart-mode', metavar='restart_mode')
 
     @staticmethod
     def execute(client, opts):
-        try:
-            with open(opts.schedule) as f:
-                schedule = yaml.load(f)
-        except Exception, e:
-            print "Problem reading process schedule file %s: %s" % (opts.schedule, e)
-            sys.exit(1)
 
         try:
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
-        except exception, e:
+        except Exception, e:
             print "problem reading process configuration file %s: %s" % (opts.configuration, e)
             sys.exit(1)
-        return client.schedule_process(opts.process_definition_id, configuration, opts.process_id)
-
-
-class PDSchedule(CeiCommand):
-
-    name = 'schedule'
-
-    def __init__(self, subparsers):
-
-        parser = subparsers.add_parser(self.name)
-        parser.add_argument('process_definition_id', metavar='pd_id')
-
-    @staticmethod
-    def execute(client, opts):
-        return client.schedule_process(str(uuid.uuid4().hex), opts.process_definition_id, None, None)
+        return client.schedule_process(opts.process_id, opts.process_definition_id,
+                configuration=configuration, queueing_mode=opts.queueing_mode,
+                restart_mode=opts.restart_mode)
 
 
 class PDDescribeProcesses(CeiCommand):
@@ -642,7 +626,7 @@ class PDWaitProcess(CeiCommand):
             if process:
                 state = process['state']
 
-                if state == "500-RUNNING":
+                if state in ("500-RUNNING", "800-EXITED"):
                     return process
 
                 if state in ("850-FAILED", "900-REJECTED"):
