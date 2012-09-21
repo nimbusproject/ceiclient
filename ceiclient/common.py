@@ -19,21 +19,35 @@ def load_cloudinitd_db(run_name):
         raise
 
     svc_list = cid.get_all_services()
-    for svc in svc_list:
-        if svc.name == 'basenode':
-            try:
-                vars['rabbitmq_host'] = svc.get_attr_from_bag("hostname")
-                vars['rabbitmq_username'] = svc.get_attr_from_bag("rabbitmq_username")
-                vars['rabbitmq_password'] = svc.get_attr_from_bag("rabbitmq_password")
-                try:
-                    vars['rabbitmq_exchange'] = svc.get_attr_from_bag("rabbitmq_exchange")
-                except ConfigException:
-                    vars['rabbitmq_exchange'] = None
-                try:
-                    vars['coi_services_system_name'] = svc.get_attr_from_bag("coi_services_system_name")
-                except ConfigException:
-                    vars['coi_services_system_name'] = None
-            except Exception, e:
-                raise
+    services = dict((svc.name, svc) for svc in svc_list)
+
+    rabbitmq = services.get('rabbitmq')
+    basenode = services.get('basenode')
+
+    if not rabbitmq and not basenode:
+        raise Exception("cloudinit.d plan has neither rabbitmq or basenode services")
+
+    if rabbitmq:
+        vars['rabbitmq_host'] = rabbitmq.get_attr_from_bag("rabbitmq_host")
+        vars['rabbitmq_username'] = rabbitmq.get_attr_from_bag("rabbitmq_username")
+        vars['rabbitmq_password'] = rabbitmq.get_attr_from_bag("rabbitmq_password")
+        try:
+            vars['rabbitmq_exchange'] = rabbitmq.get_attr_from_bag("rabbitmq_exchange")
+        except ConfigException:
+            vars['rabbitmq_exchange'] = None
+    else:
+        vars['rabbitmq_host'] = basenode.get_attr_from_bag("hostname")
+        vars['rabbitmq_username'] = basenode.get_attr_from_bag("rabbitmq_username")
+        vars['rabbitmq_password'] = basenode.get_attr_from_bag("rabbitmq_password")
+        try:
+            vars['rabbitmq_exchange'] = basenode.get_attr_from_bag("rabbitmq_exchange")
+        except ConfigException:
+            vars['rabbitmq_exchange'] = None
+
+    if basenode:
+        try:
+            vars['coi_services_system_name'] = basenode.get_attr_from_bag("coi_services_system_name")
+        except ConfigException:
+            vars['coi_services_system_name'] = None
 
     return vars
