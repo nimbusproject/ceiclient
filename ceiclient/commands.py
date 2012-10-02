@@ -911,6 +911,36 @@ class PyonPDWaitProcess(CeiCommand):
                 sys.exit(1)
             time.sleep(opts.poll)
 
+class HAStatus(CeiCommand):
+
+    name = 'status'
+
+    def __init__(self, subparsers):
+        subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        return client.status()
+
+
+class HAReconfigurePolicy(CeiCommand):
+
+    name = 'reconfigure'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('policy', metavar='new_policy.yml')
+
+    @staticmethod
+    def execute(client, opts):
+        try:
+            with open(opts.policy) as f:
+                policy = yaml.load(f)
+        except Exception, e:
+            print "problem reading policy file %s: %s" % (opts.policy, e)
+            sys.exit(1)
+        return client.reconfigure_policy(policy)
+
 
 class PyonHAStatus(CeiCommand):
 

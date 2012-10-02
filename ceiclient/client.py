@@ -8,6 +8,7 @@ from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemov
 from commands import EPUMAddDefinition, EPUMDescribeDefinition, EPUMListDefinitions, EPUMRemoveDefinition, EPUMUpdateDefinition
 from commands import PDScheduleProcess, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
 from commands import PDCreateProcessDefinition, PDDescribeProcessDefinition, PDUpdateProcessDefinition, PDRemoveProcessDefinition, PDListProcessDefinitions
+from commands import HAStatus, HAReconfigurePolicy
 from commands import PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions
 from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
 from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses, PyonPDWaitProcess
@@ -353,6 +354,31 @@ class PDClient(CeiClient):
         commands[command.name] = command
 
 
+class HAAgentClient(CeiClient):
+
+    dashi_name = 'ha_agent' # this will almost always be overridden
+    name = 'ha'
+    help = 'Control a High Availability Agent'
+
+    def __init__(self, connection, dashi_name=None):
+
+        if dashi_name:
+            self.dashi_name = dashi_name
+
+        self._connection = connection
+
+    def status(self):
+        return self._connection.call(self.dashi_name, 'status')
+
+    def reconfigure_policy(self, new_policy):
+        message = {'new_policy': new_policy}
+        return self._connection.call(self.service_name, 'reconfigure_policy', **message)
+
+    commands = {}
+    for command in [HAStatus, HAReconfigurePolicy]:
+        commands[command.name] = command
+
+
 class PyonPDProcessDefinitionClient(PyonCeiClient):
 
     service_name = 'process_dispatcher'
@@ -548,7 +574,7 @@ class ProvisionerClient(CeiClient):
 DASHI_SERVICES = {}
 for service in [DTRSDTClient, DTRSSiteClient, DTRSCredentialsClient,
         EPUMClient, EPUMDefinitionClient, PDClient, PDProcessDefinitionClient,
-        ProvisionerClient, ]:
+        ProvisionerClient, HAAgentClient]:
     DASHI_SERVICES[service.name] = service
 
 PYON_SERVICES = {}
