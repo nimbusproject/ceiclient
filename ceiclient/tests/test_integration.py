@@ -126,15 +126,13 @@ executable:
     class: something
     module: else"""
         fh, definition_file_path = tempfile.mkstemp()
-        os.close(fh)
-        with open(definition_file_path, 'w') as d:
+        with os.fdopen(fh, 'w') as d:
             d.write(definition)
         definition_name = "proc"
 
         process_config = "{}"
         fh, process_config_path = tempfile.mkstemp()
-        os.close(fh)
-        with open(process_config_path, 'w') as p:
+        with os.fdopen(fh, 'w') as p:
             p.write(process_config)
 
         cmd = "ceictl -x %s process-definition create -i %s %s" % (
