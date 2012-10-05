@@ -131,6 +131,12 @@ executable:
             d.write(definition)
         definition_name = "proc"
 
+        process_config = "{}"
+        fh, process_config_path = tempfile.mkstemp()
+        os.close(fh)
+        with open(process_config_path, 'w') as p:
+            p.write(process_config)
+
         cmd = "ceictl -x %s process-definition create -i %s %s" % (
                 self.exchange, definition_name, definition_file_path)
         out = subprocess.check_output(cmd, shell=True)
@@ -149,8 +155,8 @@ executable:
         parsed_return = yaml.load(out.rstrip())
         assert len(parsed_return) == 1
 
-        cmd = "ceictl -x %s process schedule %s" % (self.exchange, 
-                definition_name)
+        cmd = "ceictl -x %s process schedule %s %s %s" % (self.exchange,
+                str(uuid.uuid4()), definition_name, process_config_path)
         out = subprocess.check_output(cmd, shell=True)
 
         cmd = "ceictl -x %s process list" % (self.exchange)
