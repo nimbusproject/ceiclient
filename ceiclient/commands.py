@@ -462,8 +462,16 @@ class PDCreateProcessDefinition(CeiCommand):
             print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
             sys.exit(1)
 
+        if opts.definition_id:
+            definition_id = opts.definition_id
+        else:
+            definition_id = process_spec.get("process_definition_id")
+            if not definition_id:
+                print "process definition id not specified in opts or spec!"
+                sys.exit(1)
+
         return client.create_process_definition(process_definition=process_spec, 
-                process_definition_id=opts.definition_id)
+                process_definition_id=definition_id)
 
 
 class PDDescribeProcessDefinition(CeiCommand):
