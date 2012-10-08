@@ -7,7 +7,7 @@ import yaml
 import json
 
 import ceiclient
-from ceiclient.client import DASHI_SERVICES, PYON_SERVICES
+from ceiclient.commands import DASHI_SERVICES, PYON_SERVICES
 from ceiclient.connection import DashiCeiConnection, PyonCeiConnection
 
 DEFAULT_RABBITMQ_USERNAME = 'guest'
@@ -91,14 +91,14 @@ def main():
                 amqp_settings['rabbitmq_password'],
                 sysname=amqp_settings.get('coi_services_system_name'),
                 timeout=opts.timeout)
-        client = service(conn, service_name=opts.service_name)
+        client = service.client(conn, service_name=opts.service_name)
     else:
         conn = DashiCeiConnection(amqp_settings['rabbitmq_host'],
                 amqp_settings['rabbitmq_username'],
                 amqp_settings['rabbitmq_password'],
                 exchange=amqp_settings['rabbitmq_exchange'],
                 timeout=opts.timeout)
-        client = service(conn, dashi_name=opts.service_name)
+        client = service.client(conn, dashi_name=opts.service_name)
 
     command = service.commands[opts.command]
     result = command.execute(client, opts)
@@ -113,4 +113,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

@@ -1,20 +1,6 @@
 import sys
 import uuid
 
-from commands import DTRSAddDT, DTRSDescribeDT, DTRSListDT, DTRSRemoveDT, DTRSUpdateDt
-from commands import DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSite, DTRSUpdateSite
-from commands import DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials
-from commands import EPUMAdd, EPUMDescribe, EPUMList, EPUMReconfigure, EPUMRemove
-from commands import EPUMAddDefinition, EPUMDescribeDefinition, EPUMListDefinitions, EPUMRemoveDefinition, EPUMUpdateDefinition
-from commands import PDScheduleProcess, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess
-from commands import PDCreateProcessDefinition, PDDescribeProcessDefinition, PDUpdateProcessDefinition, PDRemoveProcessDefinition, PDListProcessDefinitions
-from commands import HAStatus, HAReconfigurePolicy
-from commands import PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions
-from commands import PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine
-from commands import PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses, PyonPDWaitProcess
-from commands import PyonHAStatus, PyonHAReconfigurePolicy
-from commands import ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll
-
 
 class CeiClient(object):
 
@@ -98,11 +84,9 @@ class PyonCeiClient(object):
         return changed
 
 
-class DTRSDTClient(CeiClient):
+class DTRSClient(CeiClient):
 
     dashi_name = 'dtrs'
-    name = 'dt'
-    help = 'Control Deployable Types in the DTRS'
 
     def __init__(self, connection, dashi_name=None):
         if dashi_name:
@@ -124,22 +108,6 @@ class DTRSDTClient(CeiClient):
     def update_dt(self, caller, dt_name, dt_definition):
         return self._connection.call(self.dashi_name, 'update_dt', caller=caller, dt_name=dt_name, dt_definition=dt_definition)
 
-    commands = {}
-    for command in [DTRSAddDT, DTRSDescribeDT, DTRSListDT, DTRSRemoveDT, DTRSUpdateDt]:
-        commands[command.name] = command
-
-
-class DTRSSiteClient(CeiClient):
-
-    dashi_name = 'dtrs'
-    name = 'site'
-    help = 'Control sites in the DTRS'
-
-    def __init__(self, connection, dashi_name=None):
-        if dashi_name:
-            self.dashi_name = dashi_name
-        self._connection = connection
-
     def add_site(self, site_name, site_definition):
         return self._connection.call(self.dashi_name, 'add_site', site_name=site_name, site_definition=site_definition)
 
@@ -154,22 +122,6 @@ class DTRSSiteClient(CeiClient):
 
     def update_site(self, site_name, site_definition):
         return self._connection.call(self.dashi_name, 'update_site', site_name=site_name, site_definition=site_definition)
-
-    commands = {}
-    for command in [DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSite, DTRSUpdateSite]:
-        commands[command.name] = command
-
-
-class DTRSCredentialsClient(CeiClient):
-
-    dashi_name = 'dtrs'
-    name = 'credentials'
-    help = 'Control credentials in the DTRS'
-
-    def __init__(self, connection, dashi_name=None):
-        if dashi_name:
-            self.dashi_name = dashi_name
-        self._connection = connection
 
     def add_credentials(self, caller, site_name, site_credentials):
         return self._connection.call(self.dashi_name, 'add_credentials', caller=caller, site_name=site_name, site_credentials=site_credentials)
@@ -186,16 +138,10 @@ class DTRSCredentialsClient(CeiClient):
     def update_credentials(self, caller, site_name, site_credentials):
         return self._connection.call(self.dashi_name, 'update_credentials', caller=caller, site_name=site_name, site_credentials=site_credentials)
 
-    commands = {}
-    for command in [DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials]:
-        commands[command.name] = command
-
 
 class EPUMClient(CeiClient):
 
     dashi_name = 'epu_management_service'
-    name = 'domain'
-    help = 'Control domains in the EPU Management Service'
 
     def __init__(self, connection, dashi_name=None):
         if dashi_name:
@@ -217,22 +163,6 @@ class EPUMClient(CeiClient):
     def remove_domain(self, name, caller=None):
         return self._connection.call(self.dashi_name, 'remove_domain', domain_id=name, caller=caller)
 
-    commands = {}
-    for command in [EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd, EPUMRemove]:
-        commands[command.name] = command
-
-
-class EPUMDefinitionClient(CeiClient):
-
-    dashi_name = 'epu_management_service'
-    name = 'definition'
-    help = 'Control domain definitions in the EPU Management Service'
-
-    def __init__(self, connection, dashi_name=None):
-        if dashi_name:
-            self.dashi_name = dashi_name
-        self._connection = connection
-
     def describe_domain_definition(self, name):
         return self._connection.call(self.dashi_name, 'describe_domain_definition', definition_id=name)
 
@@ -248,15 +178,10 @@ class EPUMDefinitionClient(CeiClient):
     def remove_domain_definition(self, name):
         return self._connection.call(self.dashi_name, 'remove_domain_definition', definition_id=name)
 
-    commands = {}
-    for command in [EPUMDescribeDefinition, EPUMListDefinitions, EPUMUpdateDefinition, EPUMAddDefinition, EPUMRemoveDefinition]:
-        commands[command.name] = command
 
-class PDProcessDefinitionClient(CeiClient):
+class PDClient(CeiClient):
 
     dashi_name = 'processdispatcher'
-    name = 'process-definition'
-    help = 'Control the Process Dispatcher Service'
 
     def __init__(self, connection, dashi_name=None):
         if dashi_name:
@@ -308,21 +233,6 @@ class PDProcessDefinitionClient(CeiClient):
     def list_process_definitions(self):
         return self._connection.call(self.dashi_name, 'list_definitions')
 
-    commands = {}
-    for command in [PDCreateProcessDefinition, PDUpdateProcessDefinition, PDDescribeProcessDefinition, PDRemoveProcessDefinition, PDListProcessDefinitions]:
-        commands[command.name] = command
-
-class PDClient(CeiClient):
-
-    dashi_name = 'processdispatcher'
-    name = 'process'
-    help = 'Control the Process Dispatcher Service'
-
-    def __init__(self, connection, dashi_name=None):
-        if dashi_name:
-            self.dashi_name = dashi_name
-        self._connection = connection
-
     def schedule_process(self, upid, process_definition_id, configuration=None,
             subscribers=None, constraints=None, queueing_mode=None,
             restart_mode=None, execution_engine_id=None, node_exclusive=None):
@@ -349,16 +259,10 @@ class PDClient(CeiClient):
     def dump(self):
         return self._connection.call(self.dashi_name, 'dump')
 
-    commands = {}
-    for command in [PDScheduleProcess, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
-        commands[command.name] = command
-
 
 class HAAgentClient(CeiClient):
 
     dashi_name = 'ha_agent' # this will almost always be overridden
-    name = 'ha'
-    help = 'Control a High Availability Agent'
 
     def __init__(self, connection, dashi_name=None):
 
@@ -374,16 +278,10 @@ class HAAgentClient(CeiClient):
         message = {'new_policy': new_policy}
         return self._connection.call(self.service_name, 'reconfigure_policy', **message)
 
-    commands = {}
-    for command in [HAStatus, HAReconfigurePolicy]:
-        commands[command.name] = command
 
-
-class PyonPDProcessDefinitionClient(PyonCeiClient):
+class PyonPDClient(PyonCeiClient):
 
     service_name = 'process_dispatcher'
-    name = 'process-definition'
-    help = 'Control the Pyon Process Dispatcher Service'
 
     def __init__(self, connection, **kwargs):
         self._connection = connection
@@ -424,20 +322,6 @@ class PyonPDProcessDefinitionClient(PyonCeiClient):
         message = {}
         return self._connection.call(self.service_name, 'list_process_definitions', **message)
 
-    commands = {}
-    for command in [PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions]:
-        commands[command.name] = command
-
-
-class PyonPDExecutionEngineClient(PyonCeiClient):
-
-    service_name = 'process_dispatcher'
-    name = 'execution-engine'
-    help = 'Control the Pyon Process Dispatcher Service'
-
-    def __init__(self, connection, **kwargs):
-        self._connection = connection
-
     def associate_execution_engine(self, process_definition_id='', execution_engine_definition_id=''):
         message = {
             'process_definition_id': process_definition_id,
@@ -451,20 +335,6 @@ class PyonPDExecutionEngineClient(PyonCeiClient):
             'execution_engine_definition_id': execution_engine_definition_id
         }
         return self._connection.call(self.service_name, 'associate_execution_engine', **message)
-
-    commands = {}
-    for command in [PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine]:
-        commands[command.name] = command
-
-
-class PyonPDProcessClient(PyonCeiClient):
-
-    service_name = 'process_dispatcher'
-    name = 'process'
-    help = 'Control the Pyon Process Dispatcher Service'
-
-    def __init__(self, connection, **kwargs):
-        self._connection = connection
 
     def create_process(self, process_definition_id=''):
         message = {'process_definition_id': process_definition_id}
@@ -508,15 +378,10 @@ class PyonPDProcessClient(PyonCeiClient):
             cleaned_list.append(self._strip_pyon_attrs(pyon_proc))
         return cleaned_list
 
-    commands = {}
-    for command in [PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses, PyonPDWaitProcess]:
-        commands[command.name] = command
-
 
 class PyonHAAgentClient(PyonCeiClient):
+
     service_name = 'high_availability_agent'
-    name = 'ha'
-    help = 'Control the Pyon High Availability Agent'
 
     def __init__(self, connection, service_name=None, **kwargs):
         if service_name is not None:
@@ -531,16 +396,10 @@ class PyonHAAgentClient(PyonCeiClient):
         message = {'new_policy': new_policy}
         return self._connection.call(self.service_name, 'rcmd_reconfigure_policy', **message)
 
-    commands = {}
-    for command in [PyonHAStatus, PyonHAReconfigurePolicy]:
-        commands[command.name] = command
-
 
 class ProvisionerClient(CeiClient):
 
     dashi_name = 'provisioner'
-    name = 'provisioner'
-    help = 'Control the Provisioner Service'
 
     def __init__(self, connection, dashi_name=None):
         if dashi_name:
@@ -566,18 +425,3 @@ class ProvisionerClient(CeiClient):
 
     def terminate_all(self):
         return self._connection.call(self.dashi_name, 'terminate_all')
-
-    commands = {}
-    for command in [ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll]:
-        commands[command.name] = command
-
-DASHI_SERVICES = {}
-for service in [DTRSDTClient, DTRSSiteClient, DTRSCredentialsClient,
-        EPUMClient, EPUMDefinitionClient, PDClient, PDProcessDefinitionClient,
-        ProvisionerClient, HAAgentClient]:
-    DASHI_SERVICES[service.name] = service
-
-PYON_SERVICES = {}
-for service in [PyonPDProcessDefinitionClient, PyonPDProcessClient,
-        PyonPDExecutionEngineClient, PyonHAAgentClient]:
-    PYON_SERVICES[service.name] = service

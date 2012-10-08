@@ -1,12 +1,14 @@
 import pprint
 import re
 import sys
-import uuid
 import time
+import uuid
 
 from jinja2 import Template
 import yaml
 
+from client import DTRSClient, EPUMClient, HAAgentClient, PDClient, \
+        ProvisionerClient, PyonPDClient, PyonHAAgentClient
 
 class CeiCommand(object):
 
@@ -234,7 +236,7 @@ class DTRSUpdateCredentials(CeiCommand):
         return client.update_credentials(opts.caller, opts.site_name, credentials_def)
 
 
-class EPUMAdd(CeiCommand):
+class AddDomain(CeiCommand):
 
     name = 'add'
 
@@ -252,7 +254,7 @@ class EPUMAdd(CeiCommand):
         return client.add_domain(opts.domain_id, opts.definition_id, conf, caller=opts.caller)
 
 
-class EPUMRemove(CeiCommand):
+class RemoveDomain(CeiCommand):
 
     name = 'remove'
 
@@ -265,7 +267,7 @@ class EPUMRemove(CeiCommand):
         return client.remove_domain(opts.domain_id, caller=opts.caller)
 
 
-class EPUMDescribe(CeiCommand):
+class DescribeDomain(CeiCommand):
 
     name = 'describe'
     output_template = '''Name:                    {{ result.name }}
@@ -284,11 +286,11 @@ Health:                  Monitor health  = {{result.config.health.monitor_health
 
     @staticmethod
     def output(result):
-        template = Template(EPUMDescribe.output_template)
+        template = Template(DescribeDomain.output_template)
         print template.render(result=result)
 
 
-class EPUMList(CeiCommand):
+class ListDomains(CeiCommand):
 
     name = 'list'
 
@@ -305,7 +307,7 @@ class EPUMList(CeiCommand):
             print domain_id
 
 
-class EPUMReconfigure(CeiCommand):
+class ReconfigureDomain(CeiCommand):
 
     name = 'reconfigure'
 
@@ -363,11 +365,11 @@ class EPUMReconfigure(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        updated_kvs = EPUMReconfigure.format_reconfigure(bool_reconfs=opts.updated_kv_bool, int_reconfs=opts.updated_kv_int, string_reconfs=opts.updated_kv_string)
+        updated_kvs = ReconfigureDomain.format_reconfigure(bool_reconfs=opts.updated_kv_bool, int_reconfs=opts.updated_kv_int, string_reconfs=opts.updated_kv_string)
         return client.reconfigure_domain(opts.domain_id, updated_kvs, caller=opts.caller)
 
 
-class EPUMAddDefinition(CeiCommand):
+class AddDomainDefinition(CeiCommand):
 
     name = 'add'
 
@@ -384,7 +386,7 @@ class EPUMAddDefinition(CeiCommand):
         return client.add_domain_definition(opts.definition_id, definition)
 
 
-class EPUMRemoveDefinition(CeiCommand):
+class RemoveDomainDefinition(CeiCommand):
 
     name = 'remove'
 
@@ -397,7 +399,7 @@ class EPUMRemoveDefinition(CeiCommand):
         return client.remove_domain_definition(opts.definition_id)
 
 
-class EPUMDescribeDefinition(CeiCommand):
+class DescribeDomainDefinition(CeiCommand):
 
     name = 'describe'
 
@@ -410,7 +412,7 @@ class EPUMDescribeDefinition(CeiCommand):
         return client.describe_domain_definition(opts.definition_id)
 
 
-class EPUMListDefinitions(CeiCommand):
+class ListDomainDefinitions(CeiCommand):
 
     name = 'list'
 
@@ -427,7 +429,7 @@ class EPUMListDefinitions(CeiCommand):
             print definition_id
 
 
-class EPUMUpdateDefinition(CeiCommand):
+class UpdateDomainDefinition(CeiCommand):
 
     name = 'update'
 
@@ -1056,3 +1058,207 @@ class ProvisionerTerminateAll(CeiCommand):
     def execute(client, opts):
         while not client.terminate_all():
             pass
+
+
+############
+# SERVICES #
+############
+
+
+class CeiService(object):
+
+    def __init__(self, subparsers):
+        pass
+
+
+class DT(CeiService):
+    name = 'dt'
+    help = 'Control Deployable Types in the DTRS'
+
+    commands = {}
+    for command in [DTRSAddDT, DTRSDescribeDT, DTRSListDT, DTRSRemoveDT, DTRSUpdateDt]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return DTRSClient(connection, dashi_name=dashi_name)
+
+
+class Site(CeiService):
+
+    dashi_name = 'dtrs'
+    name = 'site'
+    help = 'Control sites in the DTRS'
+
+    commands = {}
+    for command in [DTRSAddSite, DTRSDescribeSite, DTRSListSites, DTRSRemoveSite, DTRSUpdateSite]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return DTRSClient(connection, dashi_name=dashi_name)
+
+
+class Credentials(CeiService):
+
+    name = 'credentials'
+    help = 'Control credentials in the DTRS'
+
+    commands = {}
+    for command in [DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return DTRSClient(connection, dashi_name=dashi_name)
+
+
+class Domain(CeiService):
+
+    name = 'domain'
+    help = 'Control domains in the EPU Management Service'
+
+    commands = {}
+    for command in [DescribeDomain, ListDomains, ReconfigureDomain, AddDomain, RemoveDomain]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return EPUMClient(connection, dashi_name=dashi_name)
+
+
+class DomainDefinition(CeiService):
+
+    name = 'domain-definition'
+    help = 'Control domain definitions in the EPU Management Service'
+
+    commands = {}
+    for command in [DescribeDomainDefinition, ListDomainDefinitions, UpdateDomainDefinition, AddDomainDefinition, RemoveDomainDefinition]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return EPUMClient(connection, dashi_name=dashi_name)
+
+
+class Process(CeiService):
+
+    name = 'process'
+    help = 'Control the Process Dispatcher Service'
+
+    commands = {}
+    for command in [PDScheduleProcess, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return PDClient(connection, dashi_name=dashi_name)
+
+
+class ProcessDefinition(CeiService):
+
+    name = 'process-definition'
+    help = 'Control the Process Dispatcher Service'
+
+    commands = {}
+    for command in [PDCreateProcessDefinition, PDUpdateProcessDefinition, PDDescribeProcessDefinition, PDRemoveProcessDefinition, PDListProcessDefinitions]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return PDClient(connection, dashi_name=dashi_name)
+
+
+class Provisioner(CeiService):
+
+    name = 'provisioner'
+    help = 'Control the Provisioner Service'
+
+    commands = {}
+    for command in [ProvisionerDump, ProvisionerDescribeNodes, ProvisionerProvision, ProvisionerTerminateAll]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return Provisioner(connection, dashi_name=dashi_name)
+
+
+class HAAgent(CeiService):
+
+    name = 'ha'
+    help = 'Control a High Availability Agent'
+
+    commands = {}
+    for command in [HAStatus, HAReconfigurePolicy]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return HAAgentClient(connection, dashi_name=dashi_name)
+
+
+class PyonProcessDefinition(CeiService):
+
+    name = 'process-definition'
+    help = 'Control the Pyon Process Dispatcher Service'
+
+    commands = {}
+    for command in [PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, service_name=None):
+        return PyonPDClient(connection, service_name=service_name)
+
+
+class PyonPDExecutionEngine(CeiService):
+
+    name = 'execution-engine'
+    help = 'Control the Pyon Process Dispatcher Service'
+
+    commands = {}
+    for command in [PyonPDAssociateExecutionEngine, PyonPDDissociateExecutionEngine]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, service_name=None):
+        return PyonPDClient(connection, service_name=service_name)
+
+
+class PyonPDProcess(CeiService):
+
+    name = 'process'
+    help = 'Control the Pyon Process Dispatcher Service'
+
+    commands = {}
+    for command in [PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses, PyonPDWaitProcess]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, service_name=None):
+        return PyonPDClient(connection, service_name=service_name)
+
+
+class PyonHAAgent(CeiService):
+
+    name = 'ha'
+    help = 'Control the Pyon High Availability Agent'
+
+    commands = {}
+    for command in [PyonHAStatus, PyonHAReconfigurePolicy]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, service_name=None):
+        return PyonHAAgentClient(connection, service_name=service_name)
+
+
+DASHI_SERVICES = {}
+for service in [DT, Site, Credentials, Domain, DomainDefinition, Process,
+        ProcessDefinition, Provisioner, HAAgent]:
+    DASHI_SERVICES[service.name] = service
+
+PYON_SERVICES = {}
+for service in [PyonProcessDefinition, PyonPDProcess,
+        PyonPDExecutionEngine, PyonHAAgent]:
+    PYON_SERVICES[service.name] = service

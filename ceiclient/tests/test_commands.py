@@ -3,7 +3,8 @@ from nose.tools import raises
 import argparse
 import pprint
 
-from ceiclient.commands import EPUMDescribe, EPUMList, EPUMReconfigure, EPUMAdd, EPUMRemove
+from ceiclient.commands import AddDomain, DescribeDomain, ListDomains, \
+        ReconfigureDomain, RemoveDomain
 
 class TestCommandParsing:
 
@@ -12,45 +13,45 @@ class TestCommandParsing:
         self.subparsers = self.parser.add_subparsers(dest='command')
 
     def test_command_parsing_epum_describe_ok(self):
-        EPUMDescribe(self.subparsers)
+        DescribeDomain(self.subparsers)
         opts = self.parser.parse_args(['describe', 'domain1'])
         assert opts.command == 'describe'
         assert opts.domain_id == 'domain1'
 
     def test_command_parsing_epum_add_ok(self):
-        EPUMAdd(self.subparsers)
+        AddDomain(self.subparsers)
         de_conf = "XXX"
         opts = self.parser.parse_args(['add', 'domain2', "--conf", de_conf])
         assert opts.de_conf == "XXX"
         assert opts.domain_id == 'domain2'
 
     def test_command_parsing_epum_remove_ok(self):
-        EPUMRemove(self.subparsers)
+        RemoveDomain(self.subparsers)
         opts = self.parser.parse_args(['remove', 'domain2'])
         assert opts.domain_id == 'domain2'
 
     @raises(SystemExit)
     def test_command_parsing_epum_describe_failing_wrong_command(self):
-        EPUMDescribe(self.subparsers)
+        DescribeDomain(self.subparsers)
         opts = self.parser.parse_args(['list', 'domain1'])
 
     @raises(SystemExit)
     def test_command_parsing_epum_describe_failing_missing_argument(self):
-        EPUMDescribe(self.subparsers)
+        DescribeDomain(self.subparsers)
         opts = self.parser.parse_args(['describe'])
 
     def test_command_parsing_epum_list_ok(self):
-        EPUMList(self.subparsers)
+        ListDomains(self.subparsers)
         opts = self.parser.parse_args(['list'])
         assert opts.command == 'list'
 
     @raises(SystemExit)
     def test_command_parsing_epum_list_failing(self):
-        EPUMList(self.subparsers)
+        ListDomains(self.subparsers)
         opts = self.parser.parse_args(['describe'])
 
     def test_command_parsing_epum_reconfigure_ok(self):
-        EPUMReconfigure(self.subparsers)
+        ReconfigureDomain(self.subparsers)
         boolkvpair1 = 'some.key=false'
         boolkvpair2 = 'some.other_key=true'
         intkvpair1 = 'one.key=42'
@@ -68,7 +69,7 @@ class TestCommandParsing:
         assert opts.updated_kv_int == [intkvpair1, intkvpair2]
         assert opts.updated_kv_string == [stringkvpair1, stringkvpair2]
 
-        reconfiguration = EPUMReconfigure.format_reconfigure(bool_reconfs=opts.updated_kv_bool,
+        reconfiguration = ReconfigureDomain.format_reconfigure(bool_reconfs=opts.updated_kv_bool,
                                              int_reconfs=opts.updated_kv_int,
                                              string_reconfs=opts.updated_kv_string)
         assert reconfiguration == {
@@ -91,15 +92,15 @@ class TestCommandParsing:
 
     @raises(SystemExit)
     def test_command_parsing_epum_reconfigure_failing_wrong_command(self):
-        EPUMReconfigure(self.subparsers)
+        ReconfigureDomain(self.subparsers)
         opts = self.parser.parse_args(['describe', 'domain1', '42'])
 
     @raises(SystemExit)
     def test_command_parsing_epum_reconfigure_failing_not_enough_arguments(self):
-        EPUMReconfigure(self.subparsers)
+        ReconfigureDomain(self.subparsers)
         opts = self.parser.parse_args(['describe', 'domain1'])
 
     @raises(SystemExit)
     def test_command_parsing_epum_reconfigure_failing_wrong_arguments(self):
-        EPUMReconfigure(self.subparsers)
+        ReconfigureDomain(self.subparsers)
         opts = self.parser.parse_args(['describe', 'domain1', 'notanumber'])
