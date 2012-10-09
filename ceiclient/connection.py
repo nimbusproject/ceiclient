@@ -1,3 +1,4 @@
+import socket
 import sys
 import traceback
 
@@ -33,10 +34,16 @@ class DashiCeiConnection(CeiConnection):
                     self.amqp_port), self.amqp_exchange, ssl=ssl)
 
     def call(self, service, operation, **kwargs):
-        return self.dashi_connection.call(service, operation, self.timeout, **kwargs)
+        try:
+            return self.dashi_connection.call(service, operation, self.timeout, **kwargs)
+        except socket.error as e:
+            raise CeiClientError(e)
 
     def fire(self, service, operation, **kwargs):
-        return self.dashi_connection.fire(service, operation, **kwargs)
+        try:
+            return self.dashi_connection.fire(service, operation, **kwargs)
+        except socket.error as e:
+            raise CeiClientError(e)
 
     def disconnect(self):
         self.dashi_connection.disconnect()
