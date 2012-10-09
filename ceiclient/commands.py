@@ -61,6 +61,11 @@ class DTRSListDT(CeiCommand):
     def execute(client, opts):
         return client.list_dts(caller=opts.caller)
 
+    @staticmethod
+    def output(result):
+        for dt_name in result:
+            print dt_name
+
 
 class DTRSRemoveDT(CeiCommand):
 
@@ -133,6 +138,11 @@ class DTRSListSites(CeiCommand):
     def execute(client, opts):
         return client.list_sites()
 
+    @staticmethod
+    def output(result):
+        for site_name in result:
+            print site_name
+
 
 class DTRSRemoveSite(CeiCommand):
 
@@ -204,6 +214,11 @@ class DTRSListCredentials(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_credentials(caller=opts.caller)
+
+    @staticmethod
+    def output(result):
+        for site_name in result:
+            print site_name
 
 
 class DTRSRemoveCredentials(CeiCommand):
@@ -533,6 +548,11 @@ class PDListProcessDefinitions(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_process_definitions()
+
+    @staticmethod
+    def output(result):
+        for process_definition_id in result:
+            print process_definition_id
 
 
 class PDScheduleProcess(CeiCommand):
