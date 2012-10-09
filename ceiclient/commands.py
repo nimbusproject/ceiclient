@@ -1186,7 +1186,7 @@ class Provisioner(CeiService):
 
     @staticmethod
     def client(connection, dashi_name=None):
-        return Provisioner(connection, dashi_name=dashi_name)
+        return ProvisionerClient(connection, dashi_name=dashi_name)
 
 
 class HAAgent(CeiService):
