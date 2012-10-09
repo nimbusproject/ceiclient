@@ -1,0 +1,8 @@
+---
+mappings:
+  hotel:
+    iaas_image: phantom-0.1.gz
+    iaas_allocation: m1.small
+contextualization:
+  method: userdata
+  userdata: Hello Cloud!
