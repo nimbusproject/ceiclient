@@ -1,7 +1,10 @@
 import sys
 import traceback
+
 from dashi import DashiConnection
 from dashi.bootstrap import DEFAULT_EXCHANGE
+
+from ceiclient.exception import CeiClientError
 
 PYON_RETRIES = 5
 
@@ -52,8 +55,7 @@ class PyonCeiConnection(CeiConnection):
             from pyon.util.containers import get_default_sysname
             import pyon.core.exception as pyonexception
         except ImportError:
-            err = "Pyon isn't available in your environment"
-            sys.exit(err)
+            raise CeiClientError("Pyon isn't available in your environment")
 
         self.pyonexception = pyonexception
         self.RPCClient = RPCClient
@@ -107,8 +109,7 @@ class PyonCeiConnection(CeiConnection):
                 else:
                     raise
         else:
-            msg = "Tried %s times to do %s. Giving up." % (retry, operation)
-            sys.exit(msg)
+            raise CeiClientError("Tried %s times to do %s. Giving up." % (retry, operation))
 
         return ret
 

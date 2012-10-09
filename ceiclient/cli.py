@@ -7,6 +7,7 @@ import yaml
 import json
 
 import ceiclient
+from ceiclient.exception import CeiClientError
 from ceiclient.commands import DASHI_SERVICES, PYON_SERVICES
 from ceiclient.connection import DashiCeiConnection, PyonCeiConnection
 
@@ -111,5 +112,8 @@ def main():
 
     conn.disconnect()
 
-if __name__ == '__main__':
-    main()
+def start():
+    try:
+        main()
+    except CeiClientError as e:
+        sys.exit("Error: " + str(e))

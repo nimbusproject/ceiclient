@@ -12,7 +12,7 @@ setup(name='ceiclient',
       packages=['ceiclient'],
       entry_points={
           'console_scripts': [
-              'ceictl=ceiclient.cli:main'
+              'ceictl=ceiclient.cli:start'
           ]
       },
       install_requires=['cloudinitd==1.2', 'dashi', 'Jinja2', 'PyYAML', 'mock', 'nose'],

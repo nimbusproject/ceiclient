@@ -1,6 +1,8 @@
 import sys
 import uuid
 
+from ceiclient.exception import CeiClientError
+
 
 class CeiClient(object):
 
@@ -190,12 +192,10 @@ class PDClient(CeiClient):
 
     def create_process_definition(self, process_definition=None, process_definition_id=None):
         if process_definition is None:
-            msg = "You must provide a process defintion"
-            sys.exit(msg)
+            raise CeiClientError("You must provide a process defintion")
 
         if process_definition_id is None:
-            msg = "You must provide a process defintion id"
-            sys.exit(msg)
+            raise CeiClientError("You must provide a process defintion id")
 
         executable = process_definition.get('executable')
         definition_type = process_definition.get('definition_type')
@@ -208,12 +208,10 @@ class PDClient(CeiClient):
 
     def update_process_definition(self, process_definition=None, process_definition_id=None):
         if process_definition is None:
-            msg = "You must provide a process defintion"
-            sys.exit(msg)
+            raise CeiClientError("You must provide a process defintion")
 
         if process_definition_id is None:
-            msg = "You must provide a process defintion id"
-            sys.exit(msg)
+            raise CeiClientError("You must provide a process defintion id")
 
         executable = process_definition.get('executable')
         definition_type = process_definition.get('type')
@@ -342,11 +340,9 @@ class PyonPDClient(PyonCeiClient):
 
     def schedule_process(self, process_definition_id='', schedule=None, configuration=None, process_id=''):
         if schedule is None:
-            msg = "You must provide a process schedule"
-            sys.exit(msg)
+            raise CeiClientError("You must provide a process schedule")
         if schedule.get('target') is None:
-            msg = "You must provide a schedule target"
-            sys.exit(msg)
+            raise CeiClientError("You must provide a schedule target")
 
         if configuration is None:
             configuration = {}

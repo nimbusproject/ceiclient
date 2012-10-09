@@ -9,6 +9,7 @@ import yaml
 
 from client import DTRSClient, EPUMClient, HAAgentClient, PDClient, \
         ProvisionerClient, PyonPDClient, PyonHAAgentClient
+from exception import CeiClientError
 
 class CeiCommand(object):
 
@@ -476,16 +477,14 @@ class PDCreateProcessDefinition(CeiCommand):
             with open(opts.process_spec) as f:
                 process_spec = yaml.load(f)
         except Exception, e:
-            print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
-            sys.exit(1)
+            raise CeiClientError("Problem reading process specification file %s: %s" % (opts.process_spec, e))
 
         if opts.definition_id:
             definition_id = opts.definition_id
         else:
             definition_id = process_spec.get("process_definition_id")
             if not definition_id:
-                print "process definition id not specified in opts or spec!"
-                sys.exit(1)
+                raise CeiClientError("process definition id not specified in opts or spec")
 
         return client.create_process_definition(process_definition=process_spec, 
                 process_definition_id=definition_id)
@@ -519,8 +518,7 @@ class PDUpdateProcessDefinition(CeiCommand):
             with open(opts.process_spec) as f:
                 process_spec = yaml.load(f)
         except Exception, e:
-            print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
-            sys.exit(1)
+            raise CeiClientError("Problem reading process specification file %s: %s" % (opts.process_spec, e))
 
         return client.update_process_definition(process_spec, opts.definition_id)
 
@@ -575,8 +573,7 @@ class PDScheduleProcess(CeiCommand):
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
         except Exception, e:
-            print "problem reading process configuration file %s: %s" % (opts.configuration, e)
-            sys.exit(1)
+            raise CeiClientError("problem reading process configuration file %s: %s" % (opts.configuration, e))
         return client.schedule_process(opts.process_id, opts.process_definition_id,
                 configuration=configuration, queueing_mode=opts.queueing_mode,
                 restart_mode=opts.restart_mode)
@@ -660,12 +657,10 @@ class PDWaitProcess(CeiCommand):
                     return process
 
                 if state in ("850-FAILED", "900-REJECTED"):
-                    print "FAILED. Process in %s state" % state
-                    sys.exit(1)
+                    raise CeiClientError("FAILED. Process in %s state" % state)
 
             if time.time() + opts.poll >= deadline:
-                print "Timed out waiting for process %s" % opts.process_id
-                sys.exit(1)
+                raise CeiClientError("Timed out waiting for process %s" % opts.process_id)
             time.sleep(opts.poll)
 
 
@@ -701,8 +696,7 @@ class PyonPDCreateProcessDefinition(CeiCommand):
             with open(opts.process_spec) as f:
                 process_spec = yaml.load(f)
         except Exception, e:
-            print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
-            sys.exit(1)
+            raise CeiClientError("Problem reading process specification file %s: %s" % (opts.process_spec, e))
 
         return client.create_process_definition(process_spec, opts.definition_id)
 
@@ -723,8 +717,7 @@ class PyonPDUpdateProcessDefinition(CeiCommand):
             with open(opts.process_spec) as f:
                 process_spec = yaml.load(f)
         except Exception, e:
-            print "Problem reading process specification file %s: %s" % (opts.process_spec, e)
-            sys.exit(1)
+            raise CeiClientError("Problem reading process specification file %s: %s" % (opts.process_spec, e))
 
         return client.update_process_definition(process_spec, opts.definition_id)
 
@@ -856,15 +849,13 @@ class PyonPDScheduleProcess(CeiCommand):
             with open(opts.schedule) as f:
                 schedule = yaml.load(f)
         except Exception, e:
-            print "Problem reading process schedule file %s: %s" % (opts.schedule, e)
-            sys.exit(1)
+            raise CeiClientError("Problem reading process schedule file %s: %s" % (opts.schedule, e))
 
         try:
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
         except exception, e:
-            print "problem reading process configuration file %s: %s" % (opts.configuration, e)
-            sys.exit(1)
+            raise CeiClientError("problem reading process configuration file %s: %s" % (opts.configuration, e))
         return client.schedule_process(opts.process_definition_id, schedule, configuration, opts.process_id)
 
 
@@ -933,12 +924,10 @@ class PyonPDWaitProcess(CeiCommand):
                     return process
 
                 if state in (ProcessStateEnum.ERROR,):
-                    print "FAILED. Process in %s state" % ProcessStateEnum.to_str(state)
-                    sys.exit(1)
+                    raise CeiClientError("FAILED. Process in %s state" % ProcessStateEnum.to_str(state))
 
             if time.time() + opts.poll >= deadline:
-                print "Timed out waiting for process %s" % opts.process_id
-                sys.exit(1)
+                raise CeiClientError("Timed out waiting for process %s" % opts.process_id)
             time.sleep(opts.poll)
 
 class HAStatus(CeiCommand):
@@ -967,8 +956,7 @@ class HAReconfigurePolicy(CeiCommand):
             with open(opts.policy) as f:
                 policy = yaml.load(f)
         except Exception, e:
-            print "problem reading policy file %s: %s" % (opts.policy, e)
-            sys.exit(1)
+            raise CeiClientError("problem reading policy file %s: %s" % (opts.policy, e))
         return client.reconfigure_policy(policy)
 
 
@@ -998,8 +986,7 @@ class PyonHAReconfigurePolicy(CeiCommand):
             with open(opts.policy) as f:
                 policy = yaml.load(f)
         except Exception, e:
-            print "problem reading policy file %s: %s" % (opts.policy, e)
-            sys.exit(1)
+            raise CeiClientError("problem reading policy file %s: %s" % (opts.policy, e))
         return client.reconfigure_policy(policy)
 
 
@@ -1048,8 +1035,7 @@ class ProvisionerProvision(CeiCommand):
             with open(opts.provisioning_var_file) as vars_file:
                 vars = yaml.load(vars_file)
         except Exception, e:
-            print "Problem reading provisioning variables file %s: %s" % (opts.provisioning_var_file, e)
-            sys.exit(1)
+            raise CeiClientError("Problem reading provisioning variables file %s: %s" % (opts.provisioning_var_file, e))
 
         # Update the provisioning variables with secret RabbitMQ credentials
         vars['broker_ip_address'] = client._connection.amqp_broker
