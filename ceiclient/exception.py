@@ -1,0 +1,2 @@
+class CeiClientError(Exception):
+    pass
