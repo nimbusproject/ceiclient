@@ -4,10 +4,12 @@ import uuid
 from ceiclient.exception import CeiClientError
 
 
-class CeiClient(object):
+class DashiCeiClient(object):
 
     def __init__(self, connection, dashi_name=None):
-        pass
+        if dashi_name:
+            self.dashi_name = dashi_name
+        self._connection = connection
 
 
 class PyonCeiClientException(BaseException):
@@ -86,14 +88,9 @@ class PyonCeiClient(object):
         return changed
 
 
-class DTRSClient(CeiClient):
+class DTRSClient(DashiCeiClient):
 
     dashi_name = 'dtrs'
-
-    def __init__(self, connection, dashi_name=None):
-        if dashi_name:
-            self.dashi_name = dashi_name
-        self._connection = connection
 
     def add_dt(self, caller, dt_name, dt_definition):
         return self._connection.call(self.dashi_name, 'add_dt', caller=caller, dt_name=dt_name, dt_definition=dt_definition)
@@ -141,14 +138,9 @@ class DTRSClient(CeiClient):
         return self._connection.call(self.dashi_name, 'update_credentials', caller=caller, site_name=site_name, site_credentials=site_credentials)
 
 
-class EPUMClient(CeiClient):
+class EPUMClient(DashiCeiClient):
 
     dashi_name = 'epu_management_service'
-
-    def __init__(self, connection, dashi_name=None):
-        if dashi_name:
-            self.dashi_name = dashi_name
-        self._connection = connection
 
     def describe_domain(self, name, caller=None):
         return self._connection.call(self.dashi_name, 'describe_domain', domain_id=name, caller=caller)
@@ -181,14 +173,9 @@ class EPUMClient(CeiClient):
         return self._connection.call(self.dashi_name, 'remove_domain_definition', definition_id=name)
 
 
-class PDClient(CeiClient):
+class PDClient(DashiCeiClient):
 
     dashi_name = 'processdispatcher'
-
-    def __init__(self, connection, dashi_name=None):
-        if dashi_name:
-            self.dashi_name = dashi_name
-        self._connection = connection
 
     def create_process_definition(self, process_definition=None, process_definition_id=None):
         if process_definition is None:
@@ -258,16 +245,9 @@ class PDClient(CeiClient):
         return self._connection.call(self.dashi_name, 'dump')
 
 
-class HAAgentClient(CeiClient):
+class HAAgentClient(DashiCeiClient):
 
     dashi_name = 'ha_agent' # this will almost always be overridden
-
-    def __init__(self, connection, dashi_name=None):
-
-        if dashi_name:
-            self.dashi_name = dashi_name
-
-        self._connection = connection
 
     def status(self):
         return self._connection.call(self.dashi_name, 'status')
@@ -393,14 +373,9 @@ class PyonHAAgentClient(PyonCeiClient):
         return self._connection.call(self.service_name, 'rcmd_reconfigure_policy', **message)
 
 
-class ProvisionerClient(CeiClient):
+class ProvisionerClient(DashiCeiClient):
 
     dashi_name = 'provisioner'
-
-    def __init__(self, connection, dashi_name=None):
-        if dashi_name:
-            self.dashi_name = dashi_name
-        self._connection = connection
 
     def provision(self, deployable_type, site, allocation, vars, caller=None):
         launch_id = str(uuid.uuid4())
