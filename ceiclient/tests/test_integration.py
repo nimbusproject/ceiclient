@@ -114,7 +114,7 @@ class TestIntegration(TestFixture):
 
     def test_process_definitions(self):
 
-        cmd = "ceictl -x %s process-definition list" % self.exchange
+        cmd = "ceictl -Y -x %s process-definition list" % self.exchange
         out = subprocess.check_output(cmd, shell=True)
         assert out.rstrip() == '[]'
 
@@ -148,16 +148,16 @@ executable:
         assert parsed_return['definition_type'] == 'process'
         assert parsed_return['name'] == 'myproc'
 
-        cmd = "ceictl -x %s process-definition list" % (self.exchange)
+        cmd = "ceictl -Y -x %s process-definition list" % (self.exchange)
         out = subprocess.check_output(cmd, shell=True)
         parsed_return = yaml.load(out.rstrip())
         assert len(parsed_return) == 1
 
-        cmd = "ceictl -x %s process schedule %s %s %s" % (self.exchange,
+        cmd = "ceictl -Y -x %s process schedule %s %s %s" % (self.exchange,
                 str(uuid.uuid4()), definition_name, process_config_path)
         out = subprocess.check_output(cmd, shell=True)
 
-        cmd = "ceictl -x %s process list" % (self.exchange)
+        cmd = "ceictl -Y -x %s process list" % (self.exchange)
         out = subprocess.check_output(cmd, shell=True)
         parsed_return = yaml.load(out.rstrip())
         assert len(parsed_return) == 1
@@ -166,7 +166,7 @@ executable:
                 self.exchange, definition_name)
         out = subprocess.check_output(cmd, shell=True)
 
-        cmd = "ceictl -x %s process-definition list" % (self.exchange)
+        cmd = "ceictl -Y -x %s process-definition list" % (self.exchange)
         out = subprocess.check_output(cmd, shell=True)
         parsed_return = yaml.load(out.rstrip())
         assert len(parsed_return) == 0
