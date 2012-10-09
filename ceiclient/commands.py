@@ -1038,9 +1038,9 @@ class ProvisionerProvision(CeiCommand):
             raise CeiClientError("Problem reading provisioning variables file %s: %s" % (opts.provisioning_var_file, e))
 
         # Update the provisioning variables with secret RabbitMQ credentials
-        vars['broker_ip_address'] = client._connection.amqp_broker
-        vars['broker_username'] = client._connection.amqp_username
-        vars['broker_password'] = client._connection.amqp_password
+        vars['broker_ip_address'] = client.connection.amqp_broker
+        vars['broker_username'] = client.connection.amqp_username
+        vars['broker_password'] = client.connection.amqp_password
 
         return client.provision(opts.deployable_type, opts.site, opts.allocation, vars, caller=opts.caller)
 
