@@ -959,6 +959,32 @@ class HAReconfigurePolicy(CeiCommand):
             raise CeiClientError("problem reading policy file %s: %s" % (opts.policy, e))
         return client.reconfigure_policy(policy)
 
+class HAWaitStatus(CeiCommand):
+
+    name = 'wait'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('--max', action='store', type=float, default=9600,
+                help='Max seconds to wait for ready state')
+        parser.add_argument('--poll', action='store', type=float, default=0.5,
+                help='Seconds to wait between polls')
+
+    @staticmethod
+    def execute(client, opts):
+        deadline = time.time() + opts.max
+        while 1:
+
+            status = client.status()
+            if status:
+                if status in ("READY", "STEADY"):
+                    return status
+                elif status == "FAILED":
+                    raise CeiClientError("HA Agent in %s state" % status)
+
+            if time.time() + opts.poll >= deadline:
+                raise CeiClientError("Timed out waiting for HA Agent")
+            time.sleep(opts.poll)
 
 class PyonHAStatus(CeiCommand):
 
@@ -1195,7 +1221,7 @@ class HAAgent(CeiService):
     help = 'Control a High Availability Agent'
 
     commands = {}
-    for command in [HAStatus, HAReconfigurePolicy]:
+    for command in [HAStatus, HAReconfigurePolicy, HAWaitStatus]:
         commands[command.name] = command
 
     @staticmethod
