@@ -176,9 +176,22 @@ executable:
         out = subprocess.check_output(cmd, shell=True)
         self.assertEqual(out.rstrip(), dt_name)
 
-        cmd = "ceictl -x %s -c %s dt remove %s" % (self.exchange, self.user, "nonexistent")
+        missing_dt_name = "nonexistent"
+        cmd = "ceictl -x %s -c %s dt remove %s" % (self.exchange, self.user, missing_dt_name)
         try:
             subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
         except subprocess.CalledProcessError as e:
             self.assertEqual(e.returncode, 1)
-            self.assertEqual(e.output.rstrip(), "Error: Caller default has no DT named nonexistent")
+            self.assertEqual(e.output.rstrip(), "Error: Caller default has no DT named %s" % missing_dt_name)
+
+        cmd = "ceictl -x %s -c %s credentials list" % (self.exchange, self.user)
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertEqual(out.rstrip(), self.fake_site['name'])
+
+        missing_site_name = "nonexistent"
+        cmd = "ceictl -x %s -c %s credentials remove %s" % (self.exchange, self.user, missing_site_name)
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as e:
+            self.assertEqual(e.returncode, 1)
+            self.assertEqual(e.output.rstrip(), "Error: Credentials not found for user %s and site %s" % (self.user, missing_site_name))
