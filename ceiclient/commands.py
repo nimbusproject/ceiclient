@@ -4,6 +4,7 @@ import sys
 import time
 import uuid
 
+from dashi.exceptions import NotFoundError
 from jinja2 import Template
 import yaml
 
@@ -78,7 +79,10 @@ class DTRSRemoveDT(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        return client.remove_dt(opts.caller, opts.dt_name)
+        try:
+            return client.remove_dt(opts.caller, opts.dt_name)
+        except NotFoundError as e:
+            raise CeiClientError(e.value)
 
 
 class DTRSUpdateDt(CeiCommand):

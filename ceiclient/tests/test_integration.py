@@ -3,6 +3,7 @@ import yaml
 import uuid
 import tempfile
 import subprocess
+import unittest
 
 from nose.plugins.skip import Skip, SkipTest
 
@@ -70,9 +71,9 @@ example_dt = {
   }
 }
 
-class TestIntegration(TestFixture):
+class TestIntegration(TestFixture, unittest.TestCase):
 
-    def setup(self):
+    def setUp(self):
         if not os.environ.get('INT'):
             raise SkipTest("Slow integration test")
 
@@ -107,10 +108,9 @@ class TestIntegration(TestFixture):
         self.dtrs_client.add_site(self.fake_site['name'], self.fake_site)
         self.dtrs_client.add_credentials(self.user, self.fake_site['name'], fake_credentials)
 
-    def teardown(self):
+    def tearDown(self):
         self.epuharness.stop()
         os.remove(self.fake_libcloud_db)
-            
 
     def test_process_definitions(self):
 
@@ -170,3 +170,15 @@ executable:
         out = subprocess.check_output(cmd, shell=True)
         parsed_return = yaml.load(out.rstrip())
         assert len(parsed_return) == 0
+
+    def test_dtrs(self):
+        cmd = "ceictl -x %s -c %s dt list" % (self.exchange, self.user)
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertEqual(out.rstrip(), dt_name)
+
+        cmd = "ceictl -x %s -c %s dt remove %s" % (self.exchange, self.user, "nonexistent")
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as e:
+            self.assertEqual(e.returncode, 1)
+            self.assertEqual(e.output.rstrip(), "Error: Caller default has no DT named nonexistent")
