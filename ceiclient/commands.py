@@ -79,10 +79,7 @@ class DTRSRemoveDT(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        try:
-            return client.remove_dt(opts.caller, opts.dt_name)
-        except NotFoundError as e:
-            raise CeiClientError(e.value)
+        return client.remove_dt(opts.caller, opts.dt_name)
 
 
 class DTRSUpdateDt(CeiCommand):
@@ -236,10 +233,7 @@ class DTRSRemoveCredentials(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        try:
-            return client.remove_credentials(opts.caller, opts.site_name)
-        except NotFoundError as e:
-            raise CeiClientError(e.value)
+        return client.remove_credentials(opts.caller, opts.site_name)
 
 
 class DTRSUpdateCredentials(CeiCommand):
