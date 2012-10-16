@@ -12,6 +12,9 @@ from client import DTRSClient, EPUMClient, HAAgentClient, PDClient, \
         ProvisionerClient, PyonPDClient, PyonHAAgentClient
 from exception import CeiClientError
 
+# Classes for different kinds of output
+
+
 class CeiCommand(object):
 
     def __init__(self, subparsers):
@@ -22,7 +25,22 @@ class CeiCommand(object):
         pprint.pprint(result)
 
 
-class DTRSAddDT(CeiCommand):
+class CeiCommandPrintOutput(CeiCommand):
+
+    @staticmethod
+    def output(result):
+        print(result)
+
+
+class CeiCommandPrintListOutput(CeiCommand):
+
+    @staticmethod
+    def output(result):
+        for element in result:
+            print element
+
+
+class DTRSAddDT(CeiCommandPrintOutput):
 
     name = 'add'
 
@@ -52,7 +70,7 @@ class DTRSDescribeDT(CeiCommand):
         return client.describe_dt(opts.caller, opts.dt_name)
 
 
-class DTRSListDT(CeiCommand):
+class DTRSListDT(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -62,11 +80,6 @@ class DTRSListDT(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_dts(caller=opts.caller)
-
-    @staticmethod
-    def output(result):
-        for dt_name in result:
-            print dt_name
 
 
 class DTRSRemoveDT(CeiCommand):
@@ -129,7 +142,7 @@ class DTRSDescribeSite(CeiCommand):
         return client.describe_site(opts.site_name)
 
 
-class DTRSListSites(CeiCommand):
+class DTRSListSites(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -139,11 +152,6 @@ class DTRSListSites(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_sites()
-
-    @staticmethod
-    def output(result):
-        for site_name in result:
-            print site_name
 
 
 class DTRSRemoveSite(CeiCommand):
@@ -206,7 +214,7 @@ class DTRSDescribeCredentials(CeiCommand):
         return client.describe_credentials(opts.caller, opts.site_name)
 
 
-class DTRSListCredentials(CeiCommand):
+class DTRSListCredentials(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -216,11 +224,6 @@ class DTRSListCredentials(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_credentials(caller=opts.caller)
-
-    @staticmethod
-    def output(result):
-        for site_name in result:
-            print site_name
 
 
 class DTRSRemoveCredentials(CeiCommand):
@@ -307,7 +310,7 @@ Health:                  Monitor health  = {{result.config.health.monitor_health
         print template.render(result=result)
 
 
-class ListDomains(CeiCommand):
+class ListDomains(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -317,11 +320,6 @@ class ListDomains(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_domains(caller=opts.caller)
-
-    @staticmethod
-    def output(result):
-        for domain_id in result:
-            print domain_id
 
 
 class ReconfigureDomain(CeiCommand):
@@ -429,7 +427,7 @@ class DescribeDomainDefinition(CeiCommand):
         return client.describe_domain_definition(opts.definition_id)
 
 
-class ListDomainDefinitions(CeiCommand):
+class ListDomainDefinitions(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -439,11 +437,6 @@ class ListDomainDefinitions(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_domain_definitions()
-
-    @staticmethod
-    def output(result):
-        for definition_id in result:
-            print definition_id
 
 
 class UpdateDomainDefinition(CeiCommand):
@@ -537,7 +530,7 @@ class PDRemoveProcessDefinition(CeiCommand):
         return client.remove_process_definition(opts.process_definition_id)
 
 
-class PDListProcessDefinitions(CeiCommand):
+class PDListProcessDefinitions(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -547,11 +540,6 @@ class PDListProcessDefinitions(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_process_definitions()
-
-    @staticmethod
-    def output(result):
-        for process_definition_id in result:
-            print process_definition_id
 
 
 class PDScheduleProcess(CeiCommand):
