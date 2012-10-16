@@ -15,5 +15,5 @@ setup(name='ceiclient',
               'ceictl=ceiclient.cli:start'
           ]
       },
-      install_requires=['cloudinitd==1.2', 'dashi', 'Jinja2', 'PyYAML', 'mock', 'nose'],
+      install_requires=['cloudinitd==1.2', 'dashi==0.2', 'Jinja2', 'PyYAML', 'mock', 'nose'],
       test_suite='nose.collector')
