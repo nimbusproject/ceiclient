@@ -514,7 +514,7 @@ class PDCreateProcessDefinition(CeiCommand):
         else:
             definition_id = process_spec.get("process_definition_id")
             if not definition_id:
-                raise CeiClientError("process definition id not specified in opts or spec")
+                raise CeiClientError("Process definition id not specified in opts or spec")
 
         return client.create_process_definition(process_definition=process_spec, 
                 process_definition_id=definition_id)
@@ -598,7 +598,7 @@ class PDScheduleProcess(CeiCommand):
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
         except Exception, e:
-            raise CeiClientError("problem reading process configuration file %s: %s" % (opts.configuration, e))
+            raise CeiClientError("Problem reading process configuration file %s: %s" % (opts.configuration, e))
         return client.schedule_process(opts.process_id, opts.process_definition_id,
                 configuration=configuration, queueing_mode=opts.queueing_mode,
                 restart_mode=opts.restart_mode)
@@ -880,7 +880,7 @@ class PyonPDScheduleProcess(CeiCommand):
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
         except exception, e:
-            raise CeiClientError("problem reading process configuration file %s: %s" % (opts.configuration, e))
+            raise CeiClientError("Problem reading process configuration file %s: %s" % (opts.configuration, e))
         return client.schedule_process(opts.process_definition_id, schedule, configuration, opts.process_id)
 
 
@@ -981,7 +981,7 @@ class HAReconfigurePolicy(CeiCommand):
             with open(opts.policy) as f:
                 policy = yaml.load(f)
         except Exception, e:
-            raise CeiClientError("problem reading policy file %s: %s" % (opts.policy, e))
+            raise CeiClientError("Problem reading policy file %s: %s" % (opts.policy, e))
         return client.reconfigure_policy(policy)
 
 class HAWaitStatus(CeiCommand):
@@ -1037,7 +1037,7 @@ class PyonHAReconfigurePolicy(CeiCommand):
             with open(opts.policy) as f:
                 policy = yaml.load(f)
         except Exception, e:
-            raise CeiClientError("problem reading policy file %s: %s" % (opts.policy, e))
+            raise CeiClientError("Problem reading policy file %s: %s" % (opts.policy, e))
         return client.reconfigure_policy(policy)
 
 
