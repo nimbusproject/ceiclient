@@ -51,9 +51,15 @@ class DTRSAddDT(CeiCommandPrintOutput):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.dt_def_file, 'r')
-        dt_def = yaml.load(stream)
-        stream.close()
+        if opts.dt_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.dt_def_file) as f:
+                dt_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading DT definition file %s: %s" % (opts.dt_def_file, e))
+
         return client.add_dt(opts.caller, opts.dt_name, dt_def)
 
 
@@ -82,7 +88,7 @@ class DTRSListDT(CeiCommandPrintListOutput):
         return client.list_dts(caller=opts.caller)
 
 
-class DTRSRemoveDT(CeiCommand):
+class DTRSRemoveDT(CeiCommandPrintOutput):
 
     name = 'remove'
 
@@ -95,7 +101,7 @@ class DTRSRemoveDT(CeiCommand):
         return client.remove_dt(opts.caller, opts.dt_name)
 
 
-class DTRSUpdateDt(CeiCommand):
+class DTRSUpdateDt(CeiCommandPrintOutput):
 
     name = 'update'
 
@@ -106,13 +112,19 @@ class DTRSUpdateDt(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.dt_def_file, 'r')
-        dt_def = yaml.load(stream)
-        stream.close()
+        if opts.dt_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.dt_def_file) as f:
+                dt_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading DT definition file %s: %s" % (opts.dt_def_file, e))
+
         return client.update_dt(opts.caller, opts.dt_name, dt_def)
 
 
-class DTRSAddSite(CeiCommand):
+class DTRSAddSite(CeiCommandPrintOutput):
 
     name = 'add'
 
@@ -123,9 +135,15 @@ class DTRSAddSite(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.site_def_file, 'r')
-        site_def = yaml.load(stream)
-        stream.close()
+        if opts.site_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.site_def_file) as f:
+                site_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading site definition file %s: %s" % (opts.site_def_file, e))
+
         return client.add_site(opts.site_name, site_def)
 
 
@@ -154,7 +172,7 @@ class DTRSListSites(CeiCommandPrintListOutput):
         return client.list_sites()
 
 
-class DTRSRemoveSite(CeiCommand):
+class DTRSRemoveSite(CeiCommandPrintOutput):
 
     name = 'remove'
 
@@ -167,7 +185,7 @@ class DTRSRemoveSite(CeiCommand):
         return client.remove_site(opts.site_name)
 
 
-class DTRSUpdateSite(CeiCommand):
+class DTRSUpdateSite(CeiCommandPrintOutput):
 
     name = 'update'
 
@@ -178,13 +196,19 @@ class DTRSUpdateSite(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.site_def_file, 'r')
-        site_def = yaml.load(stream)
-        stream.close()
+        if opts.site_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.site_def_file) as f:
+                site_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading site definition file %s: %s" % (opts.site_def_file, e))
+
         return client.update_site(opts.site_name, site_def)
 
 
-class DTRSAddCredentials(CeiCommand):
+class DTRSAddCredentials(CeiCommandPrintOutput):
 
     name = 'add'
 
@@ -195,9 +219,15 @@ class DTRSAddCredentials(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.credentials_def_file, 'r')
-        credentials_def = yaml.load(stream)
-        stream.close()
+        if opts.credentials_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.credentials_def_file) as f:
+                credentials_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading credentials definition file %s: %s" % (opts.credentials_def_file, e))
+
         return client.add_credentials(opts.caller, opts.site_name, credentials_def)
 
 
@@ -226,7 +256,7 @@ class DTRSListCredentials(CeiCommandPrintListOutput):
         return client.list_credentials(caller=opts.caller)
 
 
-class DTRSRemoveCredentials(CeiCommand):
+class DTRSRemoveCredentials(CeiCommandPrintOutput):
 
     name = 'remove'
 
@@ -239,7 +269,7 @@ class DTRSRemoveCredentials(CeiCommand):
         return client.remove_credentials(opts.caller, opts.site_name)
 
 
-class DTRSUpdateCredentials(CeiCommand):
+class DTRSUpdateCredentials(CeiCommandPrintOutput):
 
     name = 'update'
 
@@ -250,9 +280,15 @@ class DTRSUpdateCredentials(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.credentials_def_file, 'r')
-        credentials_def = yaml.load(stream)
-        stream.close()
+        if opts.credentials_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.credentials_def_file) as f:
+                credentials_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading credentials definition file %s: %s" % (opts.credentials_def_file, e))
+
         return client.update_credentials(opts.caller, opts.site_name, credentials_def)
 
 

@@ -171,8 +171,7 @@ executable:
         parsed_return = yaml.load(out.rstrip())
         assert len(parsed_return) == 0
 
-    def test_dtrs(self):
-        # Test DTs
+    def test_dtrs_dts(self):
         cmd = "ceictl -x %s -c %s dt list" % (self.exchange, self.user)
         out = subprocess.check_output(cmd, shell=True)
         self.assertEqual(out.rstrip(), dt_name)
@@ -184,11 +183,62 @@ executable:
         except subprocess.CalledProcessError as e:
             self.assertEqual(e.returncode, 1)
             self.assertEqual(e.output.rstrip(), "Error: Caller default has no DT named %s" % missing_dt_name)
+        else:
+            self.fail("Expected failure to remove a nonexistent DT")
 
-        # Test credentials
+        new_dt_name = dt_name + "_bis"
+        cmd = "ceictl -x %s -c %s dt add %s" % (self.exchange, self.user, new_dt_name)
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as e:
+            self.assertEqual(e.returncode, 1)
+            self.assertEqual(e.output.rstrip(), "Error: The --definition argument is missing")
+        else:
+            self.fail("Expected failure to add a DT with no definition argument")
+
+        cmd = "ceictl -x %s -c %s dt update %s" % (self.exchange, self.user, dt_name)
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as e:
+            self.assertEqual(e.returncode, 1)
+            self.assertEqual(e.output.rstrip(), "Error: The --definition argument is missing")
+        else:
+            self.fail("Expected failure to update a DT with no definition argument")
+
+        dt_file = tempfile.NamedTemporaryFile(delete=False)
+        dt_file.write(yaml.safe_dump(example_dt, default_flow_style=False))
+        dt_file.close()
+
+        try:
+            cmd = "ceictl -x %s -c %s dt add %s --definition %s" % (self.exchange, self.user, new_dt_name, dt_file.name)
+            out = subprocess.check_output(cmd, shell=True)
+            self.assertEqual(out.rstrip(), "Added DT %s for user %s" % (new_dt_name, self.user))
+
+            cmd = "ceictl -x %s -c %s dt update %s --definition %s" % (self.exchange, self.user, new_dt_name, dt_file.name)
+            out = subprocess.check_output(cmd, shell=True)
+            self.assertEqual(out.rstrip(), "Updated DT %s for user %s" % (new_dt_name, self.user))
+        finally:
+            os.remove(dt_file.name)
+
+        cmd = "ceictl -x %s -c %s dt list" % (self.exchange, self.user)
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertIn(dt_name, out.split("\n"))
+        self.assertIn(new_dt_name, out.split("\n"))
+
+        cmd = "ceictl -x %s -c %s dt remove %s" % (self.exchange, self.user, new_dt_name)
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertEqual(out.rstrip(), "Removed DT %s for user %s" % (new_dt_name, self.user))
+
+        cmd = "ceictl -x %s -c %s dt list" % (self.exchange, self.user)
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertEqual(out.rstrip(), dt_name)
+
+    def test_dtrs_credentials(self):
+        site_name = self.fake_site['name']
+
         cmd = "ceictl -x %s -c %s credentials list" % (self.exchange, self.user)
         out = subprocess.check_output(cmd, shell=True)
-        self.assertEqual(out.rstrip(), self.fake_site['name'])
+        self.assertEqual(out.rstrip(), site_name)
 
         missing_site_name = "nonexistent"
         cmd = "ceictl -x %s -c %s credentials remove %s" % (self.exchange, self.user, missing_site_name)
@@ -197,16 +247,145 @@ executable:
         except subprocess.CalledProcessError as e:
             self.assertEqual(e.returncode, 1)
             self.assertEqual(e.output.rstrip(), "Error: Credentials not found for user %s and site %s" % (self.user, missing_site_name))
+        else:
+            self.fail("Expected failure to remove nonexistent credentials")
 
-        # Test sites
-        cmd = "ceictl -x %s -c %s site list" % (self.exchange, self.user)
+        new_site_name = site_name + "_bis"
+        new_site = self.fake_site
+        new_site['name'] = new_site_name
+
+        cmd = "ceictl -x %s -c %s credentials add %s" % (self.exchange, self.user, new_site_name)
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as e:
+            self.assertEqual(e.returncode, 1)
+            self.assertEqual(e.output.rstrip(), "Error: The --definition argument is missing")
+        else:
+            self.fail("Expected failure to add credentials with no definition argument")
+
+        cmd = "ceictl -x %s -c %s credentials update %s" % (self.exchange, self.user, new_site_name)
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as e:
+            self.assertEqual(e.returncode, 1)
+            self.assertEqual(e.output.rstrip(), "Error: The --definition argument is missing")
+        else:
+            self.fail("Expected failure to update credentials with no definition argument")
+
+        credentials_file = tempfile.NamedTemporaryFile(delete=False)
+        credentials_file.write(yaml.safe_dump(fake_credentials, default_flow_style=False))
+        credentials_file.close()
+
+        # Credentials cannot be added without a corresponding site
+        # Test for failure first
+        cmd = "ceictl -x %s -c %s credentials add %s --definition %s" % (self.exchange, self.user, new_site_name, credentials_file.name)
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as e:
+            self.assertEqual(e.returncode, 1)
+            self.assertEqual(e.output.rstrip(), "Error: Cannot add credentials for unknown site %s" % new_site_name)
+        else:
+            self.fail("Expected failure to add credentials with no definition argument")
+
+        # Now add the site
+        site_file = tempfile.NamedTemporaryFile(delete=False)
+        site_file.write(yaml.safe_dump(new_site, default_flow_style=False))
+        site_file.close()
+
+        try:
+            cmd = "ceictl -x %s site add %s --definition %s" % (self.exchange, new_site_name, site_file.name)
+            subprocess.check_output(cmd, shell=True)
+        finally:
+            os.remove(site_file.name)
+
+        # We can now test credentials for this site
+        try:
+            cmd = "ceictl -x %s -c %s credentials add %s --definition %s" % (self.exchange, self.user, new_site_name, credentials_file.name)
+            out = subprocess.check_output(cmd, shell=True)
+            self.assertEqual(out.rstrip(), "Added credentials of site %s for user %s" % (new_site_name, self.user))
+
+            cmd = "ceictl -x %s -c %s credentials update %s --definition %s" % (self.exchange, self.user, new_site_name, credentials_file.name)
+            out = subprocess.check_output(cmd, shell=True)
+            self.assertEqual(out.rstrip(), "Updated credentials of site %s for user %s" % (new_site_name, self.user))
+        finally:
+            os.remove(credentials_file.name)
+
+        cmd = "ceictl -x %s -c %s credentials list" % (self.exchange, self.user)
         out = subprocess.check_output(cmd, shell=True)
-        self.assertEqual(out.rstrip(), self.fake_site['name'])
+        self.assertIn(site_name, out.split("\n"))
+        self.assertIn(new_site_name, out.split("\n"))
+
+        cmd = "ceictl -x %s -c %s credentials remove %s" % (self.exchange, self.user, new_site_name)
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertEqual(out.rstrip(), "Removed credentials of site %s for user %s" % (new_site_name, self.user))
+
+        cmd = "ceictl -x %s -c %s credentials list" % (self.exchange, self.user)
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertEqual(out.rstrip(), site_name)
+
+    def test_dtrs_sites(self):
+        site_name = self.fake_site['name']
+
+        cmd = "ceictl -x %s site list" % self.exchange
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertEqual(out.rstrip(), site_name)
 
         missing_site_name = "nonexistent"
-        cmd = "ceictl -x %s -c %s site remove %s" % (self.exchange, self.user, missing_site_name)
+        cmd = "ceictl -x %s site remove %s" % (self.exchange, missing_site_name)
         try:
             subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
         except subprocess.CalledProcessError as e:
             self.assertEqual(e.returncode, 1)
             self.assertEqual(e.output.rstrip(), "Error: No site named %s" % missing_site_name)
+        else:
+            self.fail("Expected failure to remove a nonexistent site")
+
+        new_site_name = site_name + "_bis"
+        new_site = self.fake_site
+        new_site['name'] = new_site_name
+
+        cmd = "ceictl -x %s site add %s" % (self.exchange, new_site_name)
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as e:
+            self.assertEqual(e.returncode, 1)
+            self.assertEqual(e.output.rstrip(), "Error: The --definition argument is missing")
+        else:
+            self.fail("Expected failure to add site with no definition argument")
+
+        cmd = "ceictl -x %s site update %s" % (self.exchange, new_site_name)
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as e:
+            self.assertEqual(e.returncode, 1)
+            self.assertEqual(e.output.rstrip(), "Error: The --definition argument is missing")
+        else:
+            self.fail("Expected failure to update site with no definition argument")
+
+        site_file = tempfile.NamedTemporaryFile(delete=False)
+        site_file.write(yaml.safe_dump(new_site, default_flow_style=False))
+        site_file.close()
+
+        try:
+            cmd = "ceictl -x %s site add %s --definition %s" % (self.exchange, new_site_name, site_file.name)
+            out = subprocess.check_output(cmd, shell=True)
+            self.assertEqual(out.rstrip(), "Added site %s" % new_site_name)
+
+            cmd = "ceictl -x %s site update %s --definition %s" % (self.exchange, new_site_name, site_file.name)
+            out = subprocess.check_output(cmd, shell=True)
+            self.assertEqual(out.rstrip(), "Updated site %s" % new_site_name)
+        finally:
+            os.remove(site_file.name)
+
+        cmd = "ceictl -x %s site list" % self.exchange
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertIn(site_name, out.split("\n"))
+        self.assertIn(new_site_name, out.split("\n"))
+
+        cmd = "ceictl -x %s site remove %s" % (self.exchange, new_site_name)
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertEqual(out.rstrip(), "Removed site %s" % new_site_name)
+
+        cmd = "ceictl -x %s site list" % self.exchange
+        out = subprocess.check_output(cmd, shell=True)
+        self.assertEqual(out.rstrip(), site_name)
