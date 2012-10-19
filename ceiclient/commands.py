@@ -4,12 +4,16 @@ import sys
 import time
 import uuid
 
+from dashi.exceptions import NotFoundError
 from jinja2 import Template
 import yaml
 
 from client import DTRSClient, EPUMClient, HAAgentClient, PDClient, \
         ProvisionerClient, PyonPDClient, PyonHAAgentClient
 from exception import CeiClientError
+
+# Classes for different kinds of output
+
 
 class CeiCommand(object):
 
@@ -21,7 +25,22 @@ class CeiCommand(object):
         pprint.pprint(result)
 
 
-class DTRSAddDT(CeiCommand):
+class CeiCommandPrintOutput(CeiCommand):
+
+    @staticmethod
+    def output(result):
+        print(result)
+
+
+class CeiCommandPrintListOutput(CeiCommand):
+
+    @staticmethod
+    def output(result):
+        for element in result:
+            print element
+
+
+class DTRSAddDT(CeiCommandPrintOutput):
 
     name = 'add'
 
@@ -32,9 +51,15 @@ class DTRSAddDT(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.dt_def_file, 'r')
-        dt_def = yaml.load(stream)
-        stream.close()
+        if opts.dt_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.dt_def_file) as f:
+                dt_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading DT definition file %s: %s" % (opts.dt_def_file, e))
+
         return client.add_dt(opts.caller, opts.dt_name, dt_def)
 
 
@@ -51,7 +76,7 @@ class DTRSDescribeDT(CeiCommand):
         return client.describe_dt(opts.caller, opts.dt_name)
 
 
-class DTRSListDT(CeiCommand):
+class DTRSListDT(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -62,13 +87,8 @@ class DTRSListDT(CeiCommand):
     def execute(client, opts):
         return client.list_dts(caller=opts.caller)
 
-    @staticmethod
-    def output(result):
-        for dt_name in result:
-            print dt_name
 
-
-class DTRSRemoveDT(CeiCommand):
+class DTRSRemoveDT(CeiCommandPrintOutput):
 
     name = 'remove'
 
@@ -81,7 +101,7 @@ class DTRSRemoveDT(CeiCommand):
         return client.remove_dt(opts.caller, opts.dt_name)
 
 
-class DTRSUpdateDt(CeiCommand):
+class DTRSUpdateDt(CeiCommandPrintOutput):
 
     name = 'update'
 
@@ -92,13 +112,19 @@ class DTRSUpdateDt(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.dt_def_file, 'r')
-        dt_def = yaml.load(stream)
-        stream.close()
+        if opts.dt_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.dt_def_file) as f:
+                dt_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading DT definition file %s: %s" % (opts.dt_def_file, e))
+
         return client.update_dt(opts.caller, opts.dt_name, dt_def)
 
 
-class DTRSAddSite(CeiCommand):
+class DTRSAddSite(CeiCommandPrintOutput):
 
     name = 'add'
 
@@ -109,9 +135,15 @@ class DTRSAddSite(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.site_def_file, 'r')
-        site_def = yaml.load(stream)
-        stream.close()
+        if opts.site_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.site_def_file) as f:
+                site_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading site definition file %s: %s" % (opts.site_def_file, e))
+
         return client.add_site(opts.site_name, site_def)
 
 
@@ -128,7 +160,7 @@ class DTRSDescribeSite(CeiCommand):
         return client.describe_site(opts.site_name)
 
 
-class DTRSListSites(CeiCommand):
+class DTRSListSites(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -139,13 +171,8 @@ class DTRSListSites(CeiCommand):
     def execute(client, opts):
         return client.list_sites()
 
-    @staticmethod
-    def output(result):
-        for site_name in result:
-            print site_name
 
-
-class DTRSRemoveSite(CeiCommand):
+class DTRSRemoveSite(CeiCommandPrintOutput):
 
     name = 'remove'
 
@@ -158,7 +185,7 @@ class DTRSRemoveSite(CeiCommand):
         return client.remove_site(opts.site_name)
 
 
-class DTRSUpdateSite(CeiCommand):
+class DTRSUpdateSite(CeiCommandPrintOutput):
 
     name = 'update'
 
@@ -169,13 +196,19 @@ class DTRSUpdateSite(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.site_def_file, 'r')
-        site_def = yaml.load(stream)
-        stream.close()
+        if opts.site_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.site_def_file) as f:
+                site_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading site definition file %s: %s" % (opts.site_def_file, e))
+
         return client.update_site(opts.site_name, site_def)
 
 
-class DTRSAddCredentials(CeiCommand):
+class DTRSAddCredentials(CeiCommandPrintOutput):
 
     name = 'add'
 
@@ -186,9 +219,15 @@ class DTRSAddCredentials(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.credentials_def_file, 'r')
-        credentials_def = yaml.load(stream)
-        stream.close()
+        if opts.credentials_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.credentials_def_file) as f:
+                credentials_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading credentials definition file %s: %s" % (opts.credentials_def_file, e))
+
         return client.add_credentials(opts.caller, opts.site_name, credentials_def)
 
 
@@ -205,7 +244,7 @@ class DTRSDescribeCredentials(CeiCommand):
         return client.describe_credentials(opts.caller, opts.site_name)
 
 
-class DTRSListCredentials(CeiCommand):
+class DTRSListCredentials(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -216,13 +255,8 @@ class DTRSListCredentials(CeiCommand):
     def execute(client, opts):
         return client.list_credentials(caller=opts.caller)
 
-    @staticmethod
-    def output(result):
-        for site_name in result:
-            print site_name
 
-
-class DTRSRemoveCredentials(CeiCommand):
+class DTRSRemoveCredentials(CeiCommandPrintOutput):
 
     name = 'remove'
 
@@ -235,7 +269,7 @@ class DTRSRemoveCredentials(CeiCommand):
         return client.remove_credentials(opts.caller, opts.site_name)
 
 
-class DTRSUpdateCredentials(CeiCommand):
+class DTRSUpdateCredentials(CeiCommandPrintOutput):
 
     name = 'update'
 
@@ -246,9 +280,15 @@ class DTRSUpdateCredentials(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.credentials_def_file, 'r')
-        credentials_def = yaml.load(stream)
-        stream.close()
+        if opts.credentials_def_file is None:
+            raise CeiClientError("The --definition argument is missing")
+
+        try:
+            with open(opts.credentials_def_file) as f:
+                credentials_def = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading credentials definition file %s: %s" % (opts.credentials_def_file, e))
+
         return client.update_credentials(opts.caller, opts.site_name, credentials_def)
 
 
@@ -306,7 +346,7 @@ Health:                  Monitor health  = {{result.config.health.monitor_health
         print template.render(result=result)
 
 
-class ListDomains(CeiCommand):
+class ListDomains(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -316,11 +356,6 @@ class ListDomains(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_domains(caller=opts.caller)
-
-    @staticmethod
-    def output(result):
-        for domain_id in result:
-            print domain_id
 
 
 class ReconfigureDomain(CeiCommand):
@@ -428,7 +463,7 @@ class DescribeDomainDefinition(CeiCommand):
         return client.describe_domain_definition(opts.definition_id)
 
 
-class ListDomainDefinitions(CeiCommand):
+class ListDomainDefinitions(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -438,11 +473,6 @@ class ListDomainDefinitions(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_domain_definitions()
-
-    @staticmethod
-    def output(result):
-        for definition_id in result:
-            print definition_id
 
 
 class UpdateDomainDefinition(CeiCommand):
@@ -484,7 +514,7 @@ class PDCreateProcessDefinition(CeiCommand):
         else:
             definition_id = process_spec.get("process_definition_id")
             if not definition_id:
-                raise CeiClientError("process definition id not specified in opts or spec")
+                raise CeiClientError("Process definition id not specified in opts or spec")
 
         return client.create_process_definition(process_definition=process_spec, 
                 process_definition_id=definition_id)
@@ -536,7 +566,7 @@ class PDRemoveProcessDefinition(CeiCommand):
         return client.remove_process_definition(opts.process_definition_id)
 
 
-class PDListProcessDefinitions(CeiCommand):
+class PDListProcessDefinitions(CeiCommandPrintListOutput):
 
     name = 'list'
 
@@ -546,11 +576,6 @@ class PDListProcessDefinitions(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.list_process_definitions()
-
-    @staticmethod
-    def output(result):
-        for process_definition_id in result:
-            print process_definition_id
 
 
 class PDScheduleProcess(CeiCommand):
@@ -573,7 +598,7 @@ class PDScheduleProcess(CeiCommand):
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
         except Exception, e:
-            raise CeiClientError("problem reading process configuration file %s: %s" % (opts.configuration, e))
+            raise CeiClientError("Problem reading process configuration file %s: %s" % (opts.configuration, e))
         return client.schedule_process(opts.process_id, opts.process_definition_id,
                 configuration=configuration, queueing_mode=opts.queueing_mode,
                 restart_mode=opts.restart_mode)
@@ -855,7 +880,7 @@ class PyonPDScheduleProcess(CeiCommand):
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
         except exception, e:
-            raise CeiClientError("problem reading process configuration file %s: %s" % (opts.configuration, e))
+            raise CeiClientError("Problem reading process configuration file %s: %s" % (opts.configuration, e))
         return client.schedule_process(opts.process_definition_id, schedule, configuration, opts.process_id)
 
 
@@ -956,9 +981,35 @@ class HAReconfigurePolicy(CeiCommand):
             with open(opts.policy) as f:
                 policy = yaml.load(f)
         except Exception, e:
-            raise CeiClientError("problem reading policy file %s: %s" % (opts.policy, e))
+            raise CeiClientError("Problem reading policy file %s: %s" % (opts.policy, e))
         return client.reconfigure_policy(policy)
 
+class HAWaitStatus(CeiCommand):
+
+    name = 'wait'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('--max', action='store', type=float, default=9600,
+                help='Max seconds to wait for ready state')
+        parser.add_argument('--poll', action='store', type=float, default=0.5,
+                help='Seconds to wait between polls')
+
+    @staticmethod
+    def execute(client, opts):
+        deadline = time.time() + opts.max
+        while 1:
+
+            status = client.status()
+            if status:
+                if status in ("READY", "STEADY"):
+                    return status
+                elif status == "FAILED":
+                    raise CeiClientError("HA Agent in %s state" % status)
+
+            if time.time() + opts.poll >= deadline:
+                raise CeiClientError("Timed out waiting for HA Agent")
+            time.sleep(opts.poll)
 
 class PyonHAStatus(CeiCommand):
 
@@ -986,7 +1037,7 @@ class PyonHAReconfigurePolicy(CeiCommand):
             with open(opts.policy) as f:
                 policy = yaml.load(f)
         except Exception, e:
-            raise CeiClientError("problem reading policy file %s: %s" % (opts.policy, e))
+            raise CeiClientError("Problem reading policy file %s: %s" % (opts.policy, e))
         return client.reconfigure_policy(policy)
 
 
@@ -1038,9 +1089,9 @@ class ProvisionerProvision(CeiCommand):
             raise CeiClientError("Problem reading provisioning variables file %s: %s" % (opts.provisioning_var_file, e))
 
         # Update the provisioning variables with secret RabbitMQ credentials
-        vars['broker_ip_address'] = client._connection.amqp_broker
-        vars['broker_username'] = client._connection.amqp_username
-        vars['broker_password'] = client._connection.amqp_password
+        vars['broker_ip_address'] = client.connection.amqp_broker
+        vars['broker_username'] = client.connection.amqp_username
+        vars['broker_password'] = client.connection.amqp_password
 
         return client.provision(opts.deployable_type, opts.site, opts.allocation, vars, caller=opts.caller)
 
@@ -1195,7 +1246,7 @@ class HAAgent(CeiService):
     help = 'Control a High Availability Agent'
 
     commands = {}
-    for command in [HAStatus, HAReconfigurePolicy]:
+    for command in [HAStatus, HAReconfigurePolicy, HAWaitStatus]:
         commands[command.name] = command
 
     @staticmethod

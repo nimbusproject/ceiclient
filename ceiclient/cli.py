@@ -3,8 +3,9 @@
 import argparse
 import sys
 
-import yaml
+from dashi.exceptions import NotFoundError
 import json
+import yaml
 
 import ceiclient
 from ceiclient.exception import CeiClientError
@@ -102,7 +103,11 @@ def main():
         client = service.client(conn, dashi_name=opts.service_name)
 
     command = service.commands[opts.command]
-    result = command.execute(client, opts)
+    try:
+        result = command.execute(client, opts)
+    except NotFoundError as e:
+        raise CeiClientError(e.value)
+
     if opts.yaml:
         print(yaml.safe_dump(result, default_flow_style=False)),
     elif opts.json:
