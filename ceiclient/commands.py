@@ -498,27 +498,38 @@ class PDCreateProcessDefinition(CeiCommand):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('process_spec', metavar='process_spec.yml')
+        parser.add_argument('definitions', nargs="+")
         parser.add_argument('-i', '--definition-id', dest="definition_id", metavar='ID')
 
     @staticmethod
     def execute(client, opts):
-        try:
-            with open(opts.process_spec) as f:
-                process_spec = yaml.load(f)
-        except Exception, e:
-            raise CeiClientError("Problem reading process specification file %s: %s" % (opts.process_spec, e))
 
-        if opts.definition_id:
-            definition_id = opts.definition_id
-        else:
-            definition_id = process_spec.get("process_definition_id")
-            if not definition_id:
-                raise CeiClientError("Process definition id not specified in opts or spec")
+        if len(opts.definitions) > 1 and opts.definition_id:
+            raise CeiClientError("Cannot specify command line definition_id with multiple files")
+        definitions = []
+        for definition_path in opts.definitions:
+            try:
+                with open(definition_path) as f:
+                    definitions.append(yaml.load(f))
+            except Exception, e:
+                raise CeiClientError("Problem reading process specification file %s: %s" % (definition_path, e))
 
-        return client.create_process_definition(process_definition=process_spec, 
-                process_definition_id=definition_id)
+        result = []
+        for definition, filename in zip(definitions, opts.definitions):
 
+            if opts.definition_id:
+                # above check prevents this from happening with multiple definitions
+                definition_id = opts.definition_id
+            else:
+                definition_id = definition.get("process_definition_id")
+                if not definition_id:
+                    raise CeiClientError("Process definition id not specified in opts or spec")
+
+            pd_id = client.create_process_definition(process_definition=definition,
+                    process_definition_id=definition_id)
+            result.append(pd_id)
+
+        return result
 
 class PDDescribeProcessDefinition(CeiCommand):
 
