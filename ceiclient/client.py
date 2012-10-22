@@ -254,7 +254,7 @@ class HAAgentClient(DashiCeiClient):
 
     def reconfigure_policy(self, new_policy):
         message = {'new_policy': new_policy}
-        return self.connection.call(self.service_name, 'reconfigure_policy', **message)
+        return self.connection.call(self.dashi_name, 'reconfigure_policy', **message)
 
 
 class PyonPDClient(PyonCeiClient):
