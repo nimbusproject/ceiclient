@@ -676,7 +676,7 @@ class PDWaitProcess(CeiCommand):
                 help='The UPID of the process to wait on')
         parser.add_argument('--max', action='store', type=float, default=9600,
                 help='Max seconds to wait for process state')
-        parser.add_argument('--poll', action='store', type=float, default=0.5,
+        parser.add_argument('--poll', action='store', type=float, default=0.1,
                 help='Seconds to wait between polls')
 
     @staticmethod
@@ -1003,7 +1003,7 @@ class HAWaitStatus(CeiCommand):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('--max', action='store', type=float, default=9600,
                 help='Max seconds to wait for ready state')
-        parser.add_argument('--poll', action='store', type=float, default=0.5,
+        parser.add_argument('--poll', action='store', type=float, default=0.1,
                 help='Seconds to wait between polls')
 
     @staticmethod
