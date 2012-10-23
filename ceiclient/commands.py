@@ -699,6 +699,18 @@ class PDRestartProcess(CeiCommand):
 class PDDescribeProcess(CeiCommand):
 
     name = 'describe'
+    output_template = '''ID             = {{ result.upid }}
+Name           = {{ result.name }}
+State          = {{ result.state }}
+Hostname       = {{ result.hostname }}
+EEAgent        = {{ result.assigned }}
+Node Exclusive = {{ result.node_exclusive }}
+Queueing Mode  = {{ result.queueing_mode }}
+Restart Mode   = {{ result.restart_mode }}
+Starts         = {{ result.starts }}
+Constraints    = {{ result.constraints }}
+Configuration  = {{ result.configuration }}
+'''
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
@@ -707,6 +719,13 @@ class PDDescribeProcess(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.describe_process(opts.process_id)
+
+    @staticmethod
+    def output(result):
+        template = Template(PDDescribeProcess.output_template)
+        result['constraints'] = yaml.safe_dump(result['constraints']).rstrip('\n')
+        result['configuration'] = yaml.safe_dump(result['configuration']).rstrip('\n')
+        print template.render(result=result)
 
 
 class PDWaitProcess(CeiCommand):
