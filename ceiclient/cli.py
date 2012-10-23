@@ -33,6 +33,7 @@ parser.add_argument('--password', '-p', action='store', dest='password')
 parser.add_argument('--timeout', '-t', action='store', dest='timeout', type=int, default=DEFAULT_TIMEOUT)
 parser.add_argument('--yaml', '-Y', action='store_const', const=True)
 parser.add_argument('--json', '-J', action='store_const', const=True)
+parser.add_argument('--details', '-D', action='store_const', const=True)
 parser.add_argument('--run-name', '-n', action='store', dest='run_name')
 parser.add_argument('--service-name', '-d', action='store', default=None)
 parser.add_argument('--sysname', '-s', action='store', default=None)
@@ -112,6 +113,8 @@ def main():
         print(yaml.safe_dump(result, default_flow_style=False)),
     elif opts.json:
         print(json.dumps(result, indent=4)),
+    elif opts.details:
+        command.details(result)
     else:
         command.output(result)
 

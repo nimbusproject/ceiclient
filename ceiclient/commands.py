@@ -1,6 +1,7 @@
 import pprint
 import re
 import sys
+import yaml
 import time
 import uuid
 
@@ -24,6 +25,10 @@ class CeiCommand(object):
     def output(result):
         pprint.pprint(result)
 
+    @staticmethod
+    def details(result):
+        pprint.pprint(result)
+
 
 class CeiCommandPrintOutput(CeiCommand):
 
@@ -31,11 +36,20 @@ class CeiCommandPrintOutput(CeiCommand):
     def output(result):
         print(result)
 
+    @staticmethod
+    def details(result):
+        print(result)
+
 
 class CeiCommandPrintListOutput(CeiCommand):
 
     @staticmethod
     def output(result):
+        for element in result:
+            print element
+
+    @staticmethod
+    def details(result):
         for element in result:
             print element
 
@@ -618,6 +632,21 @@ class PDScheduleProcess(CeiCommand):
 class PDDescribeProcesses(CeiCommand):
 
     name = 'list'
+    output_template = '''
+Process ID    = {{ result.upid }}
+Process Name  = {{ result.name }}
+Process State = {{ result.state }}
+Hostname      = {{ result.hostname }}
+'''
+
+    details_template = '''
+Process ID    = {{ result.upid }}
+Process Name  = {{ result.name }}
+Process State = {{ result.state }}
+Hostname      = {{ result.hostname }}
+Constraints   = {{ result.constraints }}
+Configuration = {{ result.configuration }}
+'''
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
@@ -625,6 +654,20 @@ class PDDescribeProcesses(CeiCommand):
     @staticmethod
     def execute(client, opts):
         return client.describe_processes()
+
+    @staticmethod
+    def output(result):
+        template = Template(PDDescribeProcesses.output_template)
+        for raw_proc in result:
+            print template.render(result=raw_proc)
+
+    @staticmethod
+    def details(result):
+        template = Template(PDDescribeProcesses.details_template)
+        for raw_proc in result:
+            raw_proc['constraints'] = yaml.safe_dump(raw_proc['constraints']).rstrip('\n')
+            raw_proc['configuration'] = yaml.safe_dump(raw_proc['configuration']).rstrip('\n')
+            print template.render(result=raw_proc)
 
 
 class PDTerminateProcess(CeiCommand):
