@@ -15,8 +15,7 @@ setup(name='ceiclient',
               'ceictl=ceiclient.cli:start'
           ]
       },
-      dependency_links = ['http://github.com/nimbusproject/dashi/tarball/master#egg=dashi-0.2.1',
-                          'http://github.com/nimbusproject/cloudinit.d/tarball/master#egg=cloudinitd-1.2'],
+      dependency_links = ['http://github.com/nimbusproject/cloudinit.d/tarball/master#egg=cloudinitd-1.2'],
       install_requires=['cloudinitd==1.2', 'dashi>=0.2.1', 'Jinja2', 'PyYAML',],
       tests_require=['nose', 'mock'],
       test_suite='nose.collector')
