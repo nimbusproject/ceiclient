@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from dashi.exceptions import NotFoundError
+from dashi.exceptions import NotFoundError, WriteConflictError
 import json
 import yaml
 
@@ -106,7 +106,7 @@ def main():
     command = service.commands[opts.command]
     try:
         result = command.execute(client, opts)
-    except NotFoundError as e:
+    except (NotFoundError, WriteConflictError) as e:
         raise CeiClientError(e.value)
 
     if opts.yaml:

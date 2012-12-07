@@ -214,6 +214,15 @@ executable:
             out = subprocess.check_output(cmd, shell=True)
             self.assertEqual(out.rstrip(), "Added DT %s for user %s" % (new_dt_name, self.user))
 
+            cmd = "ceictl -x %s -c %s dt add %s --definition %s" % (self.exchange, self.user, new_dt_name, dt_file.name)
+            try:
+                subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            except subprocess.CalledProcessError as e:
+                self.assertEqual(e.returncode, 1)
+                self.assertEqual(e.output.rstrip(), "Error: DT %s already exists" % new_dt_name)
+            else:
+                self.fail("Expected failure to add DT that already exists")
+
             cmd = "ceictl -x %s -c %s dt update %s --definition %s" % (self.exchange, self.user, new_dt_name, dt_file.name)
             out = subprocess.check_output(cmd, shell=True)
             self.assertEqual(out.rstrip(), "Updated DT %s for user %s" % (new_dt_name, self.user))
@@ -304,6 +313,15 @@ executable:
             out = subprocess.check_output(cmd, shell=True)
             self.assertEqual(out.rstrip(), "Added credentials of site %s for user %s" % (new_site_name, self.user))
 
+            cmd = "ceictl -x %s -c %s credentials add %s --definition %s" % (self.exchange, self.user, new_site_name, credentials_file.name)
+            try:
+                subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            except subprocess.CalledProcessError as e:
+                self.assertEqual(e.returncode, 1)
+                self.assertEqual(e.output.rstrip(), "Error: Credentials for site %s already exist" % new_site_name)
+            else:
+                self.fail("Expected failure to add site credentials that already exist")
+
             cmd = "ceictl -x %s -c %s credentials update %s --definition %s" % (self.exchange, self.user, new_site_name, credentials_file.name)
             out = subprocess.check_output(cmd, shell=True)
             self.assertEqual(out.rstrip(), "Updated credentials of site %s for user %s" % (new_site_name, self.user))
@@ -370,6 +388,15 @@ executable:
             cmd = "ceictl -x %s site add %s --definition %s" % (self.exchange, new_site_name, site_file.name)
             out = subprocess.check_output(cmd, shell=True)
             self.assertEqual(out.rstrip(), "Added site %s" % new_site_name)
+
+            cmd = "ceictl -x %s site add %s --definition %s" % (self.exchange, new_site_name, site_file.name)
+            try:
+                subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            except subprocess.CalledProcessError as e:
+                self.assertEqual(e.returncode, 1)
+                self.assertEqual(e.output.rstrip(), "Error: Site %s already exists" % new_site_name)
+            else:
+                self.fail("Expected failure to add a site that already exists")
 
             cmd = "ceictl -x %s site update %s --definition %s" % (self.exchange, new_site_name, site_file.name)
             out = subprocess.check_output(cmd, shell=True)
