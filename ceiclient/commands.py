@@ -74,7 +74,8 @@ class DTRSAddDT(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading DT definition file %s: %s" % (opts.dt_def_file, e))
 
-        return client.add_dt(opts.caller, opts.dt_name, dt_def)
+        client.add_dt(opts.caller, opts.dt_name, dt_def)
+        return "Added DT %s for user %s" % (opts.dt_name, opts.caller)
 
 
 class DTRSDescribeDT(CeiCommand):
@@ -112,7 +113,8 @@ class DTRSRemoveDT(CeiCommandPrintOutput):
 
     @staticmethod
     def execute(client, opts):
-        return client.remove_dt(opts.caller, opts.dt_name)
+        client.remove_dt(opts.caller, opts.dt_name)
+        return "Removed DT %s for user %s" % (opts.dt_name, opts.caller)
 
 
 class DTRSUpdateDt(CeiCommandPrintOutput):
@@ -135,7 +137,8 @@ class DTRSUpdateDt(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading DT definition file %s: %s" % (opts.dt_def_file, e))
 
-        return client.update_dt(opts.caller, opts.dt_name, dt_def)
+        client.update_dt(opts.caller, opts.dt_name, dt_def)
+        return "Updated DT %s for user %s" % (opts.dt_name, opts.caller)
 
 
 class DTRSAddSite(CeiCommandPrintOutput):
@@ -158,7 +161,8 @@ class DTRSAddSite(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading site definition file %s: %s" % (opts.site_def_file, e))
 
-        return client.add_site(opts.site_name, site_def)
+        client.add_site(opts.site_name, site_def)
+        return "Added site %s" % opts.site_name
 
 
 class DTRSDescribeSite(CeiCommand):
@@ -196,7 +200,8 @@ class DTRSRemoveSite(CeiCommandPrintOutput):
 
     @staticmethod
     def execute(client, opts):
-        return client.remove_site(opts.site_name)
+        client.remove_site(opts.site_name)
+        return "Removed site %s" % opts.site_name
 
 
 class DTRSUpdateSite(CeiCommandPrintOutput):
@@ -219,7 +224,8 @@ class DTRSUpdateSite(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading site definition file %s: %s" % (opts.site_def_file, e))
 
-        return client.update_site(opts.site_name, site_def)
+        client.update_site(opts.site_name, site_def)
+        return "Updated site %s" % opts.site_name
 
 
 class DTRSAddCredentials(CeiCommandPrintOutput):
@@ -242,7 +248,8 @@ class DTRSAddCredentials(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading credentials definition file %s: %s" % (opts.credentials_def_file, e))
 
-        return client.add_credentials(opts.caller, opts.site_name, credentials_def)
+        client.add_credentials(opts.caller, opts.site_name, credentials_def)
+        return "Added credentials of site %s for user %s" % (opts.site_name, opts.caller)
 
 
 class DTRSDescribeCredentials(CeiCommand):
@@ -280,7 +287,8 @@ class DTRSRemoveCredentials(CeiCommandPrintOutput):
 
     @staticmethod
     def execute(client, opts):
-        return client.remove_credentials(opts.caller, opts.site_name)
+        client.remove_credentials(opts.caller, opts.site_name)
+        return "Removed credentials of site %s for user %s" % (opts.site_name, opts.caller)
 
 
 class DTRSUpdateCredentials(CeiCommandPrintOutput):
@@ -303,7 +311,8 @@ class DTRSUpdateCredentials(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading credentials definition file %s: %s" % (opts.credentials_def_file, e))
 
-        return client.update_credentials(opts.caller, opts.site_name, credentials_def)
+        client.update_credentials(opts.caller, opts.site_name, credentials_def)
+        return "Updated credentials of site %s for user %s" % (opts.site_name, opts.caller)
 
 
 class AddDomain(CeiCommand):
