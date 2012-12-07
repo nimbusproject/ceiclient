@@ -5,7 +5,6 @@ import yaml
 import time
 import uuid
 
-from dashi.exceptions import NotFoundError
 from jinja2 import Template
 import yaml
 
