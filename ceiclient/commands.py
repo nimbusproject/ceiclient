@@ -318,9 +318,12 @@ class AddDomain(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.de_conf, 'r')
-        conf = yaml.load(stream)
-        stream.close()
+        try:
+            with open(opts.de_conf, 'r') as f:
+                conf = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading decision engine configuration file %s: %s" % (opts.de_conf, e))
+
         return client.add_domain(opts.domain_id, opts.definition_id, conf, caller=opts.caller)
 
 
@@ -445,9 +448,12 @@ class AddDomainDefinition(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.definition, 'r')
-        definition = yaml.load(stream)
-        stream.close()
+        try:
+            with open(opts.definition, 'r') as f:
+                definition = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading domain definition file %s: %s" % (opts.definition, e))
+
         return client.add_domain_definition(opts.definition_id, definition)
 
 
@@ -500,9 +506,12 @@ class UpdateDomainDefinition(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        stream = open(opts.definition, 'r')
-        definition = yaml.load(stream)
-        stream.close()
+        try:
+            with open(opts.definition, 'r') as f:
+                definition = yaml.load(f)
+        except Exception, e:
+            raise CeiClientError("Problem reading domain definition file %s: %s" % (opts.definition, e))
+
         return client.update_domain_definition(opts.definition_id, definition)
 
 
