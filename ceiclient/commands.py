@@ -654,6 +654,7 @@ Process ID    = {{ result.upid }}
 Process Name  = {{ result.name }}
 Process State = {{ result.state }}
 Hostname      = {{ result.hostname }}
+EEAgent       = {{ result.assigned }}
 '''
 
     details_template = '''
@@ -661,6 +662,7 @@ Process ID    = {{ result.upid }}
 Process Name  = {{ result.name }}
 Process State = {{ result.state }}
 Hostname      = {{ result.hostname }}
+EEAgent       = {{ result.assigned }}
 Constraints   = {{ result.constraints }}
 Configuration = {{ result.configuration }}
 '''
