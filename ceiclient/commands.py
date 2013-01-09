@@ -521,6 +521,30 @@ class UpdateDomainDefinition(CeiCommand):
         return client.update_domain_definition(opts.definition_id, definition)
 
 
+class PDSystemBootOn(CeiCommand):
+
+    name = 'on'
+
+    def __init__(self, subparsers):
+        subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        client.set_system_boot(True)
+
+
+class PDSystemBootOff(CeiCommand):
+
+    name = 'off'
+
+    def __init__(self, subparsers):
+        subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        client.set_system_boot(False)
+
+
 class PDCreateProcessDefinition(CeiCommand):
 
     name = 'create'
@@ -1289,6 +1313,20 @@ class DomainDefinition(CeiService):
         return EPUMClient(connection, dashi_name=dashi_name)
 
 
+class PDSystemBoot(CeiService):
+
+    name = 'system-boot'
+    help = 'Control the Process Dispatcher system boot state'
+
+    commands = {}
+    for command in [PDSystemBootOn, PDSystemBootOff]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return PDClient(connection, dashi_name=dashi_name)
+
+
 class Process(CeiService):
 
     name = 'process'
@@ -1403,7 +1441,7 @@ class PyonHAAgent(CeiService):
 
 DASHI_SERVICES = {}
 for service in [DT, Site, Credentials, Domain, DomainDefinition, Process,
-        ProcessDefinition, Provisioner, HAAgent]:
+        ProcessDefinition, Provisioner, HAAgent, PDSystemBoot]:
     DASHI_SERVICES[service.name] = service
 
 PYON_SERVICES = {}

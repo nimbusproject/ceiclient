@@ -177,6 +177,9 @@ class PDClient(DashiCeiClient):
 
     dashi_name = 'process_dispatcher'
 
+    def set_system_boot(self, system_boot):
+        self.connection.call(self.dashi_name, 'set_system_boot', system_boot=system_boot)
+
     def create_process_definition(self, process_definition=None, process_definition_id=None):
         if process_definition is None:
             raise CeiClientError("You must provide a process defintion")
