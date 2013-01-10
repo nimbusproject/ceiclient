@@ -212,8 +212,9 @@ class PDClient(DashiCeiClient):
                 definition_id=process_definition_id, executable=executable,
                 definition_type=definition_type, name=name, description=description)
 
-    def describe_process_definition(self, process_definition_id=''):
-        return self.connection.call(self.dashi_name, 'describe_definition', definition_id=process_definition_id)
+    def describe_process_definition(self, process_definition_id='', process_definition_name=''):
+        return self.connection.call(self.dashi_name, 'describe_definition',
+            definition_id=process_definition_id, definition_name=process_definition_name)
 
     def remove_process_definition(self, process_definition_id=''):
         return self.connection.call(self.dashi_name, 'remove_definition', definition_id=process_definition_id)

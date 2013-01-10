@@ -4,6 +4,7 @@ import time
 import uuid
 
 from jinja2 import Template
+from dashi.exceptions import NotFoundError, WriteConflictError
 
 from client import DTRSClient, EPUMClient, HAAgentClient, PDClient, \
         ProvisionerClient, PyonPDClient, PyonHAAgentClient
@@ -545,6 +546,41 @@ class PDSystemBootOff(CeiCommand):
         client.set_system_boot(False)
 
 
+def _validate_process_definition(definition):
+    if not isinstance(definition, dict):
+        raise ValueError("invalid definition")
+
+    name = definition.get('name')
+    if not name:
+        raise ValueError("definition missing name")
+    executable = definition.get('executable')
+    if not executable or not isinstance(executable, dict):
+        raise ValueError("definition has missing or invalid executable")
+
+    module = executable.get('module')
+    cls = executable.get('class')
+    if not module or not cls:
+        raise ValueError("definition has invalid executable")
+
+
+def _load_process_definitions(definition_files):
+    definition_names = set()
+    definitions = []
+    for definition_path in definition_files:
+        try:
+            with open(definition_path) as f:
+                definition = yaml.load(f)
+                _validate_process_definition(definition)
+                definitions.append(definition)
+        except Exception, e:
+            raise CeiClientError("Problem reading process specification file %s: %s" % (definition_path, e))
+        name = definition['name']
+        if name in definition_names:
+            raise CeiClientError("Process definition name '%s' found in multiple definitions!" % name)
+        definition_names.add(name)
+    return definitions
+
+
 class PDCreateProcessDefinition(CeiCommand):
 
     name = 'create'
@@ -559,13 +595,7 @@ class PDCreateProcessDefinition(CeiCommand):
 
         if len(opts.definitions) > 1 and opts.definition_id:
             raise CeiClientError("Cannot specify command line definition_id with multiple files")
-        definitions = []
-        for definition_path in opts.definitions:
-            try:
-                with open(definition_path) as f:
-                    definitions.append(yaml.load(f))
-            except Exception, e:
-                raise CeiClientError("Problem reading process specification file %s: %s" % (definition_path, e))
+        definitions = _load_process_definitions(opts.definitions)
 
         result = []
         for definition, filename in zip(definitions, opts.definitions):
@@ -583,6 +613,59 @@ class PDCreateProcessDefinition(CeiCommand):
             result.append(pd_id)
 
         return result
+
+
+class PDSyncProcessDefinitions(CeiCommand):
+
+    name = 'sync'
+    description = """
+    Ensure all of the provided process definitions exist and are up to date.
+
+    Definitions which already exist are updated (but retain the same ID).
+    New definitions are created.
+    """
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name, description=self.description)
+        parser.add_argument('definitions', nargs="+", metavar="definition.yml")
+
+    @staticmethod
+    def execute(client, opts):
+
+        definitions = _load_process_definitions(opts.definitions)
+
+        result = []
+        for definition in definitions:
+            name = definition['name']
+            try:
+                found_definition = client.describe_process_definition(
+                    process_definition_name=name)
+            except NotFoundError:
+                found_definition = None
+
+            if found_definition:
+                found_definition_id = found_definition.get('definition_id')
+                if not found_definition_id:
+                    raise CeiClientError("Found '%s' definition without an ID??" % name)
+                found_executable = found_definition.get('executable')
+                if found_executable != definition['executable']:
+                    client.update_process_definition(process_definition=definition,
+                        process_definition_id=found_definition_id)
+                    result.append((name, "UPDATED"))
+                else:
+                    result.append((name, "OK"))
+            else:
+                definition_id = uuid.uuid4().hex
+                client.create_process_definition(process_definition=definition,
+                    process_definition_id=definition_id)
+                result.append((name, "CREATED"))
+        return result
+
+    @staticmethod
+    def output(result):
+        for name, status in result:
+            print str(name).ljust(45) + "     " + str(status)
+
 
 class PDDescribeProcessDefinition(CeiCommand):
 
@@ -635,7 +718,7 @@ class PDListProcessDefinitions(CeiCommandPrintListOutput):
     name = 'list'
 
     def __init__(self, subparsers):
-        parser = subparsers.add_parser(self.name)
+        subparsers.add_parser(self.name)
 
     @staticmethod
     def execute(client, opts):
@@ -707,7 +790,7 @@ Configuration = {{ result.configuration }}
 '''
 
     def __init__(self, subparsers):
-        parser = subparsers.add_parser(self.name)
+        subparsers.add_parser(self.name)
 
     @staticmethod
     def execute(client, opts):
@@ -826,7 +909,7 @@ class PDDump(CeiCommand):
     name = 'dump'
 
     def __init__(self, subparsers):
-        parser = subparsers.add_parser(self.name)
+        subparsers.add_parser(self.name)
 
     @staticmethod
     def execute(client, opts):
@@ -915,7 +998,7 @@ class PyonPDListProcessDefinitions(CeiCommand):
 
     def __init__(self, subparsers):
 
-        parser = subparsers.add_parser(self.name)
+        subparsers.add_parser(self.name)
 
     @staticmethod
     def execute(client, opts):
@@ -1011,7 +1094,7 @@ class PyonPDScheduleProcess(CeiCommand):
         try:
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
-        except exception, e:
+        except Exception, e:
             raise CeiClientError("Problem reading process configuration file %s: %s" % (opts.configuration, e))
         return client.schedule_process(opts.process_definition_id, schedule, configuration, opts.process_id)
 
@@ -1047,7 +1130,7 @@ class PyonPDListProcesses(CeiCommand):
     name = 'list'
 
     def __init__(self, subparsers):
-        parser = subparsers.add_parser(self.name)
+        subparsers.add_parser(self.name)
 
     @staticmethod
     def execute(client, opts):
@@ -1087,6 +1170,7 @@ class PyonPDWaitProcess(CeiCommand):
                 raise CeiClientError("Timed out waiting for process %s" % opts.process_id)
             time.sleep(opts.poll)
 
+
 class HAStatus(CeiCommand):
 
     name = 'status'
@@ -1116,6 +1200,7 @@ class HAReconfigurePolicy(CeiCommand):
             raise CeiClientError("Problem reading policy file %s: %s" % (opts.policy, e))
         return client.reconfigure_policy(policy)
 
+
 class HAWaitStatus(CeiCommand):
 
     name = 'wait'
@@ -1142,6 +1227,7 @@ class HAWaitStatus(CeiCommand):
             if time.time() + opts.poll >= deadline:
                 raise CeiClientError("Timed out waiting for HA Agent")
             time.sleep(opts.poll)
+
 
 class PyonHAStatus(CeiCommand):
 
@@ -1233,7 +1319,7 @@ class ProvisionerTerminateAll(CeiCommand):
     name = 'terminate_all'
 
     def __init__(self, subparsers):
-        parser = subparsers.add_parser(self.name)
+        subparsers.add_parser(self.name)
 
     # From https://confluence.oceanobservatories.org/display/CIDev/R2+EPU+Provisioner+Improvements
     #
@@ -1364,7 +1450,9 @@ class ProcessDefinition(CeiService):
     help = 'Control the Process Dispatcher Service'
 
     commands = {}
-    for command in [PDCreateProcessDefinition, PDUpdateProcessDefinition, PDDescribeProcessDefinition, PDRemoveProcessDefinition, PDListProcessDefinitions]:
+    for command in [PDCreateProcessDefinition, PDUpdateProcessDefinition,
+            PDSyncProcessDefinitions, PDDescribeProcessDefinition,
+            PDRemoveProcessDefinition, PDListProcessDefinitions]:
         commands[command.name] = command
 
     @staticmethod
