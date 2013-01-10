@@ -221,7 +221,8 @@ class PDClient(DashiCeiClient):
     def list_process_definitions(self):
         return self.connection.call(self.dashi_name, 'list_definitions')
 
-    def schedule_process(self, upid, process_definition_id, configuration=None,
+    def schedule_process(self, upid, process_definition_id=None,
+            process_definition_name=None, configuration=None,
             subscribers=None, constraints=None, queueing_mode=None,
             restart_mode=None, execution_engine_id=None, node_exclusive=None):
         args = dict(upid=upid, definition_id=process_definition_id,
@@ -229,6 +230,11 @@ class PDClient(DashiCeiClient):
                configuration=configuration, queueing_mode=queueing_mode,
                restart_mode=restart_mode, execution_engine_id=execution_engine_id,
                node_exclusive=node_exclusive)
+
+        # only include this arg if it is provided
+        if process_definition_name is not None:
+            args['definition_name'] = process_definition_name
+
         return self.connection.call(self.dashi_name, 'schedule_process',
                                      args=args)
 

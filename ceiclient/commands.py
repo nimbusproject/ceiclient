@@ -646,24 +646,41 @@ class PDScheduleProcess(CeiCommand):
 
     name = 'schedule'
 
+    description = "Schedule a new or existing process in the system"
+
     def __init__(self, subparsers):
 
-        parser = subparsers.add_parser(self.name)
-        parser.add_argument('process_id', metavar='proc_id')
-        parser.add_argument('process_definition_id', metavar='pd_id')
-        parser.add_argument('configuration', metavar='process_configuration.yml')
+        parser = subparsers.add_parser(self.name, description=self.description)
+        parser.add_argument('--id', metavar='ID', help="process ID")
+
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument('--definition-id', metavar='ID', help="process definition id")
+        group.add_argument('--definition-name', metavar='DEFINITION', help="process definition name")
+
+        parser.add_argument('--config', metavar='config.yml')
         parser.add_argument('--queueing-mode', metavar='queueing_mode')
         parser.add_argument('--restart-mode', metavar='restart_mode')
 
     @staticmethod
     def execute(client, opts):
 
-        try:
-            with open(opts.configuration) as f:
-                configuration = yaml.load(f)
-        except Exception, e:
-            raise CeiClientError("Problem reading process configuration file %s: %s" % (opts.configuration, e))
-        return client.schedule_process(opts.process_id, opts.process_definition_id,
+        if not (opts.id or opts.definition_name or opts.definition_id):
+            raise CeiClientError("Need a process ID or process definition to launch")
+
+        process_id = opts.id or uuid.uuid4().hex
+
+        configuration = None
+        if opts.config:
+            try:
+                with open(opts.config) as f:
+                    configuration = yaml.load(f)
+            except Exception, e:
+                raise CeiClientError("Problem reading process configuration file %s: %s"
+                    % (opts.configuration, e))
+
+        return client.schedule_process(process_id,
+                process_definition_id=opts.definition_id,
+                process_definition_name=opts.definition_name,
                 configuration=configuration, queueing_mode=opts.queueing_mode,
                 restart_mode=opts.restart_mode)
 
