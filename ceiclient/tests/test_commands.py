@@ -6,6 +6,7 @@ import pprint
 from ceiclient.commands import AddDomain, DescribeDomain, ListDomains, \
         ReconfigureDomain, RemoveDomain
 
+
 class TestCommandParsing:
 
     def setUp(self):

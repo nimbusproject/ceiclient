@@ -60,6 +60,7 @@ class DTRSAddDT(CeiCommandPrintOutput):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('dt_name', action='store', help='The name of the DT to be added.')
         parser.add_argument('--definition', dest='dt_def_file', action='store', help='Set the DT definition to use.')
+        parser.add_argument('--force', '-f', help="Update the DT if it exists", action='store_true')
 
     @staticmethod
     def execute(client, opts):
@@ -72,7 +73,15 @@ class DTRSAddDT(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading DT definition file %s: %s" % (opts.dt_def_file, e))
 
-        client.add_dt(opts.caller, opts.dt_name, dt_def)
+        try:
+            client.add_dt(opts.caller, opts.dt_name, dt_def)
+        except WriteConflictError:
+            if opts.force:
+                client.update_dt(opts.caller, opts.dt_name, dt_def)
+                return "Updated DT %s for user %s" % (opts.dt_name, opts.caller)
+            else:
+                raise
+
         return "Added DT %s for user %s" % (opts.dt_name, opts.caller)
 
 
@@ -147,6 +156,7 @@ class DTRSAddSite(CeiCommandPrintOutput):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('site_name', action='store', help='The name of the site to be added.')
         parser.add_argument('--definition', dest='site_def_file', action='store', help='Set the site definition to use.')
+        parser.add_argument('--force', '-f', help="Update the site if it exists", action='store_true')
 
     @staticmethod
     def execute(client, opts):
@@ -159,7 +169,14 @@ class DTRSAddSite(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading site definition file %s: %s" % (opts.site_def_file, e))
 
-        client.add_site(opts.site_name, site_def)
+        try:
+            client.add_site(opts.site_name, site_def)
+        except WriteConflictError:
+            if opts.force:
+                client.update_site(opts.site_name, site_def)
+                return "Updated site %s" % opts.site_name
+            else:
+                raise
         return "Added site %s" % opts.site_name
 
 
@@ -234,6 +251,7 @@ class DTRSAddCredentials(CeiCommandPrintOutput):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('site_name', action='store', help='The name of the site to be added.')
         parser.add_argument('--definition', dest='credentials_def_file', action='store', help='Set the credentials definition to use.')
+        parser.add_argument('--force', '-f', help="Update the credential if it exists", action='store_true')
 
     @staticmethod
     def execute(client, opts):
@@ -246,7 +264,14 @@ class DTRSAddCredentials(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading credentials definition file %s: %s" % (opts.credentials_def_file, e))
 
-        client.add_credentials(opts.caller, opts.site_name, credentials_def)
+        try:
+            client.add_credentials(opts.caller, opts.site_name, credentials_def)
+        except WriteConflictError:
+            if opts.force:
+                client.update_credentials(opts.caller, opts.site_name, credentials_def)
+                return "Updated credentials of site %s for user %s" % (opts.site_name, opts.caller)
+            else:
+                raise
         return "Added credentials of site %s for user %s" % (opts.site_name, opts.caller)
 
 

@@ -219,6 +219,10 @@ executable:
             else:
                 self.fail("Expected failure to add DT that already exists")
 
+            cmd = "ceictl -x %s -c %s dt add --force %s --definition %s" % (self.exchange, self.user, new_dt_name, dt_file.name)
+            out = subprocess.check_output(cmd, shell=True)
+            self.assertEqual(out.rstrip(), "Updated DT %s for user %s" % (new_dt_name, self.user))
+
             cmd = "ceictl -x %s -c %s dt update %s --definition %s" % (self.exchange, self.user, new_dt_name, dt_file.name)
             out = subprocess.check_output(cmd, shell=True)
             self.assertEqual(out.rstrip(), "Updated DT %s for user %s" % (new_dt_name, self.user))
@@ -318,6 +322,10 @@ executable:
             else:
                 self.fail("Expected failure to add site credentials that already exist")
 
+            cmd = "ceictl -x %s -c %s credentials add --force %s --definition %s" % (self.exchange, self.user, new_site_name, credentials_file.name)
+            out = subprocess.check_output(cmd, shell=True)
+            self.assertEqual(out.rstrip(), "Updated credentials of site %s for user %s" % (new_site_name, self.user))
+
             cmd = "ceictl -x %s -c %s credentials update %s --definition %s" % (self.exchange, self.user, new_site_name, credentials_file.name)
             out = subprocess.check_output(cmd, shell=True)
             self.assertEqual(out.rstrip(), "Updated credentials of site %s for user %s" % (new_site_name, self.user))
@@ -393,6 +401,10 @@ executable:
                 self.assertEqual(e.output.rstrip(), "Error: Site %s already exists" % new_site_name)
             else:
                 self.fail("Expected failure to add a site that already exists")
+
+            cmd = "ceictl -x %s site add %s --force --definition %s" % (self.exchange, new_site_name, site_file.name)
+            out = subprocess.check_output(cmd, shell=True)
+            self.assertEqual(out.rstrip(), "Updated site %s" % new_site_name)
 
             cmd = "ceictl -x %s site update %s --definition %s" % (self.exchange, new_site_name, site_file.name)
             out = subprocess.check_output(cmd, shell=True)
