@@ -5,11 +5,10 @@ import tempfile
 import subprocess
 import unittest
 
-from nose.plugins.skip import Skip, SkipTest
+from nose.plugins.skip import SkipTest
 
 try:
     from epuharness.fixture import TestFixture
-    from epuharness.harness import EPUHarness
 except ImportError:
     raise SkipTest("EPUHarness must be installed for integration tests")
 
@@ -56,20 +55,21 @@ fake_credentials = {
 dt_name = "example"
 example_dt = {
   'mappings': {
-    'real-site':{
+    'real-site': {
       'iaas_image': 'r2-worker',
       'iaas_allocation': 'm1.large',
     },
-    'ec2-fake':{
+    'ec2-fake': {
       'iaas_image': 'ami-fake',
       'iaas_allocation': 't1.micro',
     }
   },
-  'contextualization':{
+  'contextualization': {
     'method': 'chef-solo',
     'chef_config': {}
   }
 }
+
 
 class TestIntegration(TestFixture, unittest.TestCase):
 
@@ -77,7 +77,7 @@ class TestIntegration(TestFixture, unittest.TestCase):
         if not os.environ.get('INT'):
             raise SkipTest("Slow integration test")
 
-        self.deployment = basic_deployment % {"default_user" : default_user}
+        self.deployment = basic_deployment % {"default_user": default_user}
 
         self.exchange = "testexchange-%s" % str(uuid.uuid4())
         self.user = default_user
@@ -87,10 +87,10 @@ class TestIntegration(TestFixture, unittest.TestCase):
             raise SkipTest("EPUHarness running. Can't run this test")
 
         # Set up fake libcloud and start deployment
-        self.fake_site = self.make_fake_libcloud_site()
+        self.fake_site, _ = self.make_fake_libcloud_site()
 
-        self.epuharness = EPUHarness(exchange=self.exchange)
-        self.dashi = self.epuharness.dashi
+        self.setup_harness(exchange=self.exchange)
+        self.addCleanup(self.teardown_harness)
 
         self.epuharness.start(deployment_str=self.deployment)
 
@@ -107,10 +107,6 @@ class TestIntegration(TestFixture, unittest.TestCase):
         self.dtrs_client.add_dt(self.user, dt_name, example_dt)
         self.dtrs_client.add_site(self.fake_site['name'], self.fake_site)
         self.dtrs_client.add_credentials(self.user, self.fake_site['name'], fake_credentials)
-
-    def tearDown(self):
-        self.epuharness.stop()
-        os.remove(self.fake_libcloud_db)
 
     def test_process_definitions(self):
 
@@ -153,8 +149,8 @@ executable:
         parsed_return = yaml.load(out.rstrip())
         assert len(parsed_return) == 1
 
-        cmd = "ceictl -Y -x %s process schedule %s %s %s" % (self.exchange,
-                str(uuid.uuid4()), definition_name, process_config_path)
+        cmd = "ceictl -Y -x %s process schedule --definition-id %s --config %s" % (self.exchange,
+                definition_name, process_config_path)
         out = subprocess.check_output(cmd, shell=True)
 
         cmd = "ceictl -Y -x %s process list" % (self.exchange)
