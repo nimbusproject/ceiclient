@@ -87,6 +87,7 @@ def main():
         amqp_settings['rabbitmq_exchange'] = opts.exchange
     if opts.sysname:
         amqp_settings['coi_services_system_name'] = opts.sysname
+        amqp_settings['dashi_sysname'] = opts.sysname
 
     if opts.pyon:
         conn = PyonCeiConnection(amqp_settings['rabbitmq_host'],
@@ -101,7 +102,7 @@ def main():
                 amqp_settings['rabbitmq_password'],
                 exchange=amqp_settings['rabbitmq_exchange'],
                 timeout=opts.timeout,
-                sysname=amqp_settings.get('coi_services_system_name'))
+                sysname=amqp_settings.get('dashi_sysname'))
         client = service.client(conn, dashi_name=opts.service_name)
 
     command = service.commands[opts.command]

@@ -49,5 +49,9 @@ def load_cloudinitd_db(run_name):
             vars['coi_services_system_name'] = basenode.get_attr_from_bag("coi_services_system_name")
         except ConfigException:
             vars['coi_services_system_name'] = None
+        try:
+            vars['dashi_sysname'] = basenode.get_attr_from_bag("dashi_sysname")
+        except ConfigException:
+            vars['dashi_sysname'] = None
 
     return vars
