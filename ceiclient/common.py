@@ -1,5 +1,25 @@
 import os
+import sys
+import errno
+import pprint
 
+def safe_print(p_str):
+    try:
+        print(p_str)
+    except IOError, e:
+        if e.errno == errno.EPIPE:
+            sys.exit(0)
+        else:
+            raise
+
+def safe_pprint(p_str):
+    try:
+        pprint.pprint(p_str)
+    except IOError, e:
+        if e.errno == errno.EPIPE:
+            sys.exit(0)
+        else:
+            raise
 
 def load_cloudinitd_db(run_name):
 

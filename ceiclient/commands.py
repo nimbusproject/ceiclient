@@ -1,16 +1,14 @@
-import pprint
 import re
-import sys
 import yaml
 import time
 import uuid
 
 from jinja2 import Template
-import yaml
 
 from client import DTRSClient, EPUMClient, HAAgentClient, PDClient, \
         ProvisionerClient, PyonPDClient, PyonHAAgentClient
 from exception import CeiClientError
+from common import safe_print, safe_pprint
 
 # Classes for different kinds of output
 
@@ -22,22 +20,22 @@ class CeiCommand(object):
 
     @staticmethod
     def output(result):
-        pprint.pprint(result)
+        safe_pprint(result)
 
     @staticmethod
     def details(result):
-        pprint.pprint(result)
+        safe_pprint(result)
 
 
 class CeiCommandPrintOutput(CeiCommand):
 
     @staticmethod
     def output(result):
-        print(result)
+        safe_print(result)
 
     @staticmethod
     def details(result):
-        print(result)
+        safe_print(result)
 
 
 class CeiCommandPrintListOutput(CeiCommand):
@@ -45,12 +43,12 @@ class CeiCommandPrintListOutput(CeiCommand):
     @staticmethod
     def output(result):
         for element in result:
-            print element
+            safe_print(element)
 
     @staticmethod
     def details(result):
         for element in result:
-            print element
+            safe_print(element)
 
 
 class DTRSAddDT(CeiCommandPrintOutput):
@@ -368,7 +366,7 @@ Health:                  Monitor health  = {{result.config.health.monitor_health
     @staticmethod
     def output(result):
         template = Template(DescribeDomain.output_template)
-        print template.render(result=result)
+        safe_print(template.render(result=result))
 
 
 class ListDomains(CeiCommandPrintListOutput):
@@ -678,7 +676,7 @@ Configuration = {{ result.configuration }}
     def output(result):
         template = Template(PDDescribeProcesses.output_template)
         for raw_proc in result:
-            print template.render(result=raw_proc)
+            safe_print(template.render(result=raw_proc))
 
     @staticmethod
     def details(result):
@@ -686,7 +684,7 @@ Configuration = {{ result.configuration }}
         for raw_proc in result:
             raw_proc['constraints'] = yaml.safe_dump(raw_proc['constraints']).rstrip('\n')
             raw_proc['configuration'] = yaml.safe_dump(raw_proc['configuration']).rstrip('\n')
-            print template.render(result=raw_proc)
+            safe_print(template.render(result=raw_proc))
 
 
 class PDTerminateProcess(CeiCommand):
@@ -744,7 +742,8 @@ Configuration  = {{ result.configuration }}
         template = Template(PDDescribeProcess.output_template)
         result['constraints'] = yaml.safe_dump(result['constraints']).rstrip('\n')
         result['configuration'] = yaml.safe_dump(result['configuration']).rstrip('\n')
-        print template.render(result=result)
+        safe_print(template.render(result=result))
+
 
 
 class PDWaitProcess(CeiCommand):

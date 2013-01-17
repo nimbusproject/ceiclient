@@ -11,6 +11,7 @@ import ceiclient
 from ceiclient.exception import CeiClientError
 from ceiclient.commands import DASHI_SERVICES, PYON_SERVICES
 from ceiclient.connection import DashiCeiConnection, PyonCeiConnection
+from ceiclient.common import safe_print
 
 DEFAULT_RABBITMQ_USERNAME = 'guest'
 DEFAULT_RABBITMQ_PASSWORD = 'guest'
@@ -112,9 +113,9 @@ def main():
         raise CeiClientError(e.value)
 
     if opts.yaml:
-        print(yaml.safe_dump(result, default_flow_style=False)),
+        safe_print(yaml.safe_dump(result, default_flow_style=False)),
     elif opts.json:
-        print(json.dumps(result, indent=4)),
+        safe_print(json.dumps(result, indent=4)),
     elif opts.details:
         command.details(result)
     else:
