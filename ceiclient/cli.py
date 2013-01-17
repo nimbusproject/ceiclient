@@ -100,7 +100,8 @@ def main():
                 amqp_settings['rabbitmq_username'],
                 amqp_settings['rabbitmq_password'],
                 exchange=amqp_settings['rabbitmq_exchange'],
-                timeout=opts.timeout)
+                timeout=opts.timeout,
+                sysname=amqp_settings.get('coi_services_system_name'))
         client = service.client(conn, dashi_name=opts.service_name)
 
     command = service.commands[opts.command]

@@ -20,18 +20,20 @@ class DashiCeiConnection(CeiConnection):
 
     _name = 'ceiclient'
 
-    def __init__(self, broker, username, password, exchange=None, timeout=None, port=5672, ssl=False):
+    def __init__(self, broker, username, password, exchange=None, timeout=None, port=5672, ssl=False, sysname=None):
         self.amqp_broker = broker
         self.amqp_username = username
         self.amqp_password = password
         self.amqp_port = port
+        self.sysname = sysname
         self.amqp_exchange = exchange or DEFAULT_EXCHANGE
         self.timeout = timeout
 
         self.dashi_connection = DashiConnection(self._name,
                 'amqp://%s:%s@%s:%s//' % (self.amqp_username,
                     self.amqp_password, self.amqp_broker,
-                    self.amqp_port), self.amqp_exchange, ssl=ssl)
+                    self.amqp_port), self.amqp_exchange, ssl=ssl,
+                    sysname=self.sysname)
 
     def call(self, service, operation, **kwargs):
         try:

@@ -175,7 +175,7 @@ class EPUMClient(DashiCeiClient):
 
 class PDClient(DashiCeiClient):
 
-    dashi_name = 'processdispatcher'
+    dashi_name = 'process_dispatcher'
 
     def create_process_definition(self, process_definition=None, process_definition_id=None):
         if process_definition is None:
