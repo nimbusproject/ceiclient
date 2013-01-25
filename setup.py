@@ -3,7 +3,7 @@
 from distutils.core import setup
 from setuptools import setup, find_packages
 
-VERSION = '0.1.1'
+VERSION = '0.1.2'
 
 tests_require = ['nose', 'mock']
 setup(name='ceiclient',
