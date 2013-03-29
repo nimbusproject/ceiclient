@@ -4,10 +4,10 @@ import time
 import uuid
 
 from jinja2 import Template
-from dashi.exceptions import NotFoundError, WriteConflictError
+from dashi.exceptions import NotFoundError, WriteConflictError, BadRequestError
 
 from client import DTRSClient, EPUMClient, HAAgentClient, PDClient, \
-        ProvisionerClient, PyonPDClient, PyonHAAgentClient
+    ProvisionerClient, PyonPDClient, PyonHAAgentClient
 from exception import CeiClientError
 from common import safe_print, safe_pprint
 
@@ -155,7 +155,9 @@ class DTRSAddSite(CeiCommandPrintOutput):
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('site_name', action='store', help='The name of the site to be added.')
-        parser.add_argument('--definition', dest='site_def_file', action='store', help='Set the site definition to use.')
+        parser.add_argument(
+            '--definition', dest='site_def_file', action='store',
+            help='Set the site definition to use.')
         parser.add_argument('--force', '-f', help="Update the site if it exists", action='store_true')
 
     @staticmethod
@@ -250,7 +252,9 @@ class DTRSAddCredentials(CeiCommandPrintOutput):
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('site_name', action='store', help='The name of the site to be added.')
-        parser.add_argument('--definition', dest='credentials_def_file', action='store', help='Set the credentials definition to use.')
+        parser.add_argument(
+            '--definition', dest='credentials_def_file', action='store',
+            help='Set the credentials definition to use.')
         parser.add_argument('--force', '-f', help="Update the credential if it exists", action='store_true')
 
     @staticmethod
@@ -321,7 +325,8 @@ class DTRSUpdateCredentials(CeiCommandPrintOutput):
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('site_name', action='store', help='The name of the site to be updated.')
-        parser.add_argument('--definition', dest='credentials_def_file', action='store', help='The credentials definition to use.')
+        parser.add_argument('--definition', dest='credentials_def_file', action='store',
+            help='The credentials definition to use.')
 
     @staticmethod
     def execute(client, opts):
@@ -345,8 +350,10 @@ class AddDomain(CeiCommand):
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('domain_id', action='store', help='The name of the domain to be added.')
-        parser.add_argument('--definition', dest='definition_id', action='store', help='The name of the domain definition to use.')
-        parser.add_argument('--conf', dest='de_conf', action='store', help='Additional configuration for the decision engine.')
+        parser.add_argument('--definition', dest='definition_id', action='store',
+            help='The name of the domain definition to use.')
+        parser.add_argument('--conf', dest='de_conf', action='store',
+            help='Additional configuration for the decision engine.')
 
     @staticmethod
     def execute(client, opts):
@@ -414,9 +421,12 @@ class ReconfigureDomain(CeiCommand):
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('domain_id', action='store', help='The domain to reconfigure')
-        parser.add_argument('--bool', dest='updated_kv_bool', action='append', help='Key to modify in the domain configuration with a boolean value')
-        parser.add_argument('--int', dest='updated_kv_int', action='append', help='Key to modify in the domain configuration with a integer value')
-        parser.add_argument('--string', dest='updated_kv_string', action='append', help='Key to modify in the domain configuration with a string value')
+        parser.add_argument('--bool', dest='updated_kv_bool', action='append',
+            help='Key to modify in the domain configuration with a boolean value')
+        parser.add_argument('--int', dest='updated_kv_int', action='append',
+            help='Key to modify in the domain configuration with a integer value')
+        parser.add_argument('--string', dest='updated_kv_string', action='append',
+            help='Key to modify in the domain configuration with a string value')
 
     @staticmethod
     def format_reconfigure(bool_reconfs=[], int_reconfs=[], string_reconfs=[]):
@@ -425,7 +435,7 @@ class ReconfigureDomain(CeiCommand):
         for reconf in bool_reconfs or []:
             m = re.match(r, reconf)
             if m:
-                if h.has_key(m.group(1)):
+                if h in m.group(1):
                     section = h[m.group(1)]
                 else:
                     section = {}
@@ -442,7 +452,7 @@ class ReconfigureDomain(CeiCommand):
         for reconf in int_reconfs or []:
             m = re.match(r, reconf)
             if m:
-                if h.has_key(m.group(1)):
+                if h in m.group(1):
                     section = h[m.group(1)]
                 else:
                     section = {}
@@ -453,7 +463,7 @@ class ReconfigureDomain(CeiCommand):
         for reconf in string_reconfs or []:
             m = re.match(r, reconf)
             if m:
-                if h.has_key(m.group(1)):
+                if h in m.group(1):
                     section = h[m.group(1)]
                 else:
                     section = {}
@@ -465,7 +475,8 @@ class ReconfigureDomain(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        updated_kvs = ReconfigureDomain.format_reconfigure(bool_reconfs=opts.updated_kv_bool, int_reconfs=opts.updated_kv_int, string_reconfs=opts.updated_kv_string)
+        updated_kvs = ReconfigureDomain.format_reconfigure(
+            bool_reconfs=opts.updated_kv_bool, int_reconfs=opts.updated_kv_int, string_reconfs=opts.updated_kv_string)
         return client.reconfigure_domain(opts.domain_id, updated_kvs, caller=opts.caller)
 
 
@@ -476,7 +487,8 @@ class AddDomainDefinition(CeiCommand):
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('definition_id', action='store', help='The name of the domain definition to be added')
-        parser.add_argument('--definition', dest='definition', action='store', help='File containing the domain definition description')
+        parser.add_argument('--definition', dest='definition', action='store',
+            help='File containing the domain definition description')
 
     @staticmethod
     def execute(client, opts):
@@ -534,7 +546,8 @@ class UpdateDomainDefinition(CeiCommand):
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('definition_id', action='store', help='The domain definition to reconfigure')
-        parser.add_argument('--definition', dest='definition', action='store', help='File containing the new domain definition')
+        parser.add_argument('--definition', dest='definition', action='store',
+            help='File containing the new domain definition')
 
     @staticmethod
     def execute(client, opts):
@@ -894,7 +907,6 @@ Configuration  = {{ result.configuration }}
         safe_print(template.render(result=result))
 
 
-
 class PDWaitProcess(CeiCommand):
 
     name = 'wait'
@@ -1022,7 +1034,6 @@ class PyonPDListProcessDefinitions(CeiCommand):
     name = 'list'
 
     def __init__(self, subparsers):
-
         subparsers.add_parser(self.name)
 
     @staticmethod
@@ -1119,7 +1130,7 @@ class PyonPDScheduleProcess(CeiCommand):
         try:
             with open(opts.configuration) as f:
                 configuration = yaml.load(f)
-        except Exception, e:
+        except Exception:
             raise CeiClientError("Problem reading process configuration file %s: %s" % (opts.configuration, e))
         return client.schedule_process(opts.process_definition_id, schedule, configuration, opts.process_id)
 
@@ -1196,16 +1207,135 @@ class PyonPDWaitProcess(CeiCommand):
             time.sleep(opts.poll)
 
 
-class HAStatus(CeiCommand):
+class HAList(CeiCommand):
 
-    name = 'status'
+    name = 'list'
+
+    details_template = '''
+HA Agent for {{ result.configuration.highavailability.process_definition_name }}
+Process ID    = {{ result.upid }}
+Process Name  = {{ result.name }}
+Process State = {{ result.state }}
+Dashi Name    = {{ result.configuration.highavailability.dashi_name }}
+Hostname      = {{ result.hostname }}
+EEAgent       = {{ result.assigned }}
+'''
 
     def __init__(self, subparsers):
         subparsers.add_parser(self.name)
 
     @staticmethod
     def execute(client, opts):
-        return client.status()
+        all_procs = client.describe_processes()
+        ha_procs = [proc for proc in all_procs if proc['name'] and proc['name'].startswith('haagent')]
+        non_terminated_procs = [proc for proc in ha_procs if proc['state'] < '600']
+        return non_terminated_procs
+
+    @staticmethod
+    def output(result):
+        for raw_proc in result:
+            safe_print(raw_proc['configuration']['highavailability']['process_definition_name'])
+
+    @staticmethod
+    def details(result):
+        template = Template(HAList.details_template)
+        for raw_proc in result:
+            safe_print(template.render(result=raw_proc))
+
+
+class HADescribe(CeiCommand):
+
+    name = 'describe'
+
+    output_template = '''HA Agent for {{ result.name}}
+Service ID    = {{ result.service_id }}
+HA Status     = {{ result.status }}
+Processes     = {{ result.managed_upids }}
+Policy        = {{ result.policy }}
+'''
+
+    details_template = '''HA Agent for {{ result.name}}
+Service ID    = {{ result.service_id }}
+HA Status     = {{ result.status }}
+Processes     = {{ result.managed_upids }}
+Policy        = {{ result.policy }}
+Policy Parameters: {% for key, val in result.policy_params.iteritems() %}
+  {{ key }} = {{ val }}{% endfor %}
+'''
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process', metavar='HAPROCESS')
+
+    @staticmethod
+    def execute(client, opts):
+        ha_dashi_name = "ha_%s" % opts.process
+        ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
+        dump = ha_client.dump()
+        dump['name'] = opts.process
+        dump['status'] = ha_client.status()
+        return dump
+
+    @staticmethod
+    def output(result):
+        result['managed_upids'] = ",".join(result['managed_upids'])
+        template = Template(HADescribe.output_template)
+        safe_print(template.render(result=result))
+
+    @staticmethod
+    def details(result):
+        result['managed_upids'] = ",".join(result['managed_upids'])
+        template = Template(HADescribe.details_template)
+        safe_print(template.render(result=result))
+
+
+class HADumpPolicy(CeiCommand):
+
+    name = 'dump_policy'
+
+    output_template = '''---
+policy_name: {{ result.policy }}
+policy_params: {% for key, val in result.policy_params.iteritems() %}
+  {{key}}: {{val}}{% endfor %}
+'''
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process', metavar='HAPROCESS')
+
+    @staticmethod
+    def execute(client, opts):
+        ha_dashi_name = "ha_%s" % opts.process
+        ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
+        dump = ha_client.dump()
+        for key in dump.keys():
+            if key not in ('policy', 'policy_params'):
+                del dump[key]
+        return dump
+
+    @staticmethod
+    def output(result):
+        template = Template(HADumpPolicy.output_template)
+        safe_print(template.render(result=result))
+
+
+class HAStatus(CeiCommand):
+
+    name = 'status'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process', metavar='HAPROCESS')
+
+    @staticmethod
+    def execute(client, opts):
+        ha_dashi_name = "ha_%s" % opts.process
+        ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
+        return ha_client.status()
+
+    @staticmethod
+    def output(result):
+        safe_print(result)
 
 
 class HAReconfigurePolicy(CeiCommand):
@@ -1214,16 +1344,33 @@ class HAReconfigurePolicy(CeiCommand):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
+        parser.add_argument('process', metavar='HAPROCESS')
         parser.add_argument('policy', metavar='new_policy.yml')
 
     @staticmethod
     def execute(client, opts):
+        ha_dashi_name = "ha_%s" % opts.process
+        ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
         try:
             with open(opts.policy) as f:
                 policy = yaml.load(f)
+                policy_name = policy.get('policy_name')
+                policy_parameters = policy.get('policy_parameters')
         except Exception, e:
             raise CeiClientError("Problem reading policy file %s: %s" % (opts.policy, e))
-        return client.reconfigure_policy(policy)
+        if policy_name is not None and policy_parameters is None:
+            err = "You have set a new policy_name, but no new parameters"
+            raise CeiClientError("Problem with policy file %s: %s" % (opts.policy, err))
+
+        try:
+            return ha_client.reconfigure_policy(policy_parameters, new_policy=policy_name)
+        except BadRequestError as e:
+            raise CeiClientError("Bad Request: %s" % e.value)
+
+    @staticmethod
+    def output(result):
+        if result is not None:
+            safe_print(result)
 
 
 class HAWaitStatus(CeiCommand):
@@ -1232,6 +1379,7 @@ class HAWaitStatus(CeiCommand):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
+        parser.add_argument('process', metavar='HAPROCESS')
         parser.add_argument('--max', action='store', type=float, default=9600,
                 help='Max seconds to wait for ready state')
         parser.add_argument('--poll', action='store', type=float, default=0.1,
@@ -1239,10 +1387,13 @@ class HAWaitStatus(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
+        ha_dashi_name = "ha_%s" % opts.process
+        ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
+
         deadline = time.time() + opts.max
         while 1:
 
-            status = client.status()
+            status = ha_client.status()
             if status:
                 if status in ("READY", "STEADY"):
                     return status
@@ -1252,6 +1403,10 @@ class HAWaitStatus(CeiCommand):
             if time.time() + opts.poll >= deadline:
                 raise CeiClientError("Timed out waiting for HA Agent")
             time.sleep(opts.poll)
+
+    @staticmethod
+    def output(result):
+        safe_print(result)
 
 
 class PyonHAStatus(CeiCommand):
@@ -1405,7 +1560,8 @@ class Credentials(CeiService):
     help = 'Control credentials in the DTRS'
 
     commands = {}
-    for command in [DTRSAddCredentials, DTRSDescribeCredentials, DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials]:
+    for command in [DTRSAddCredentials, DTRSDescribeCredentials,
+            DTRSListCredentials, DTRSRemoveCredentials, DTRSUpdateCredentials]:
         commands[command.name] = command
 
     @staticmethod
@@ -1433,7 +1589,8 @@ class DomainDefinition(CeiService):
     help = 'Control domain definitions in the EPU Management Service'
 
     commands = {}
-    for command in [DescribeDomainDefinition, ListDomainDefinitions, UpdateDomainDefinition, AddDomainDefinition, RemoveDomainDefinition]:
+    for command in [DescribeDomainDefinition, ListDomainDefinitions,
+                UpdateDomainDefinition, AddDomainDefinition, RemoveDomainDefinition]:
         commands[command.name] = command
 
     @staticmethod
@@ -1461,7 +1618,8 @@ class Process(CeiService):
     help = 'Control the Process Dispatcher Service'
 
     commands = {}
-    for command in [PDScheduleProcess, PDDescribeProcess, PDDescribeProcesses, PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
+    for command in [PDScheduleProcess, PDDescribeProcess, PDDescribeProcesses,
+            PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
         commands[command.name] = command
 
     @staticmethod
@@ -1505,11 +1663,15 @@ class HAAgent(CeiService):
     help = 'Control a High Availability Agent'
 
     commands = {}
-    for command in [HAStatus, HAReconfigurePolicy, HAWaitStatus]:
+    for command in [HAStatus, HAReconfigurePolicy, HAWaitStatus, HADumpPolicy, HADescribe, HAList]:
         commands[command.name] = command
 
     @staticmethod
     def client(connection, dashi_name=None):
+        return PDClient(connection, dashi_name=dashi_name)
+
+    @staticmethod
+    def ha_client(connection, dashi_name=None):
         return HAAgentClient(connection, dashi_name=dashi_name)
 
 
@@ -1519,7 +1681,8 @@ class PyonProcessDefinition(CeiService):
     help = 'Control the Pyon Process Dispatcher Service'
 
     commands = {}
-    for command in [PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition, PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions]:
+    for command in [PyonPDCreateProcessDefinition, PyonPDUpdateProcessDefinition,
+            PyonPDReadProcessDefinition, PyonPDDeleteProcessDefinition, PyonPDListProcessDefinitions]:
         commands[command.name] = command
 
     @staticmethod
@@ -1547,7 +1710,8 @@ class PyonPDProcess(CeiService):
     help = 'Control the Pyon Process Dispatcher Service'
 
     commands = {}
-    for command in [PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess, PyonPDReadProcess, PyonPDListProcesses, PyonPDWaitProcess]:
+    for command in [PyonPDCreateProcess, PyonPDScheduleProcess, PyonPDCancelProcess,
+            PyonPDReadProcess, PyonPDListProcesses, PyonPDWaitProcess]:
         commands[command.name] = command
 
     @staticmethod

@@ -1,4 +1,3 @@
-import sys
 import uuid
 
 from ceiclient.exception import CeiClientError
@@ -93,7 +92,8 @@ class DTRSClient(DashiCeiClient):
     dashi_name = 'dtrs'
 
     def add_dt(self, caller, dt_name, dt_definition):
-        return self.connection.call(self.dashi_name, 'add_dt', caller=caller, dt_name=dt_name, dt_definition=dt_definition)
+        return self.connection.call(self.dashi_name, 'add_dt', caller=caller,
+                                    dt_name=dt_name, dt_definition=dt_definition)
 
     def describe_dt(self, caller, dt_name):
         return self.connection.call(self.dashi_name, 'describe_dt', caller=caller, dt_name=dt_name)
@@ -105,7 +105,8 @@ class DTRSClient(DashiCeiClient):
         return self.connection.call(self.dashi_name, 'remove_dt', caller=caller, dt_name=dt_name)
 
     def update_dt(self, caller, dt_name, dt_definition):
-        return self.connection.call(self.dashi_name, 'update_dt', caller=caller, dt_name=dt_name, dt_definition=dt_definition)
+        return self.connection.call(self.dashi_name, 'update_dt', caller=caller,
+                                    dt_name=dt_name, dt_definition=dt_definition)
 
     def add_site(self, site_name, site_definition):
         return self.connection.call(self.dashi_name, 'add_site', site_name=site_name, site_definition=site_definition)
@@ -120,10 +121,12 @@ class DTRSClient(DashiCeiClient):
         return self.connection.call(self.dashi_name, 'remove_site', site_name=site_name)
 
     def update_site(self, site_name, site_definition):
-        return self.connection.call(self.dashi_name, 'update_site', site_name=site_name, site_definition=site_definition)
+        return self.connection.call(self.dashi_name, 'update_site',
+                                    site_name=site_name, site_definition=site_definition)
 
     def add_credentials(self, caller, site_name, site_credentials):
-        return self.connection.call(self.dashi_name, 'add_credentials', caller=caller, site_name=site_name, site_credentials=site_credentials)
+        return self.connection.call(self.dashi_name, 'add_credentials', caller=caller,
+                                    site_name=site_name, site_credentials=site_credentials)
 
     def describe_credentials(self, caller, site_name):
         return self.connection.call(self.dashi_name, 'describe_credentials', caller=caller, site_name=site_name)
@@ -135,7 +138,8 @@ class DTRSClient(DashiCeiClient):
         return self.connection.call(self.dashi_name, 'remove_credentials', caller=caller, site_name=site_name)
 
     def update_credentials(self, caller, site_name, site_credentials):
-        return self.connection.call(self.dashi_name, 'update_credentials', caller=caller, site_name=site_name, site_credentials=site_credentials)
+        return self.connection.call(self.dashi_name, 'update_credentials', caller=caller,
+                                    site_name=site_name, site_credentials=site_credentials)
 
 
 class EPUMClient(DashiCeiClient):
@@ -152,7 +156,8 @@ class EPUMClient(DashiCeiClient):
         return self.connection.call(self.dashi_name, 'reconfigure_domain', domain_id=name, config=config, caller=caller)
 
     def add_domain(self, name, definition_id, config, caller=None):
-        return self.connection.call(self.dashi_name, 'add_domain', domain_id=name, definition_id=definition_id, config=config, caller=caller)
+        return self.connection.call(self.dashi_name, 'add_domain', domain_id=name,
+                                    definition_id=definition_id, config=config, caller=caller)
 
     def remove_domain(self, name, caller=None):
         return self.connection.call(self.dashi_name, 'remove_domain', domain_id=name, caller=caller)
@@ -164,7 +169,8 @@ class EPUMClient(DashiCeiClient):
         return self.connection.call(self.dashi_name, 'list_domain_definitions')
 
     def update_domain_definition(self, name, definition):
-        return self.connection.call(self.dashi_name, 'update_domain_definition', definition_id=name, definition=definition)
+        return self.connection.call(self.dashi_name, 'update_domain_definition',
+                                    definition_id=name, definition=definition)
 
     def add_domain_definition(self, name, definition):
         return self.connection.call(self.dashi_name, 'add_domain_definition', definition_id=name, definition=definition)
@@ -262,13 +268,18 @@ class PDClient(DashiCeiClient):
 
 class HAAgentClient(DashiCeiClient):
 
-    dashi_name = 'ha_agent' # this will almost always be overridden
+    dashi_name = 'ha_agent'  # this will almost always be overridden
 
     def status(self):
         return self.connection.call(self.dashi_name, 'status')
 
-    def reconfigure_policy(self, new_policy):
-        message = {'new_policy': new_policy}
+    def dump(self):
+        return self.connection.call(self.dashi_name, 'dump')
+
+    def reconfigure_policy(self, new_policy_params, new_policy=None):
+        message = {'new_policy_params': new_policy_params}
+        if new_policy is not None:
+            message['new_policy_name'] = new_policy
         return self.connection.call(self.dashi_name, 'reconfigure_policy', **message)
 
 
@@ -383,8 +394,11 @@ class PyonHAAgentClient(PyonCeiClient):
         message = {}
         return self.connection.call(self.service_name, 'rcmd_status', **message)
 
-    def reconfigure_policy(self, new_policy=None):
-        message = {'new_policy': new_policy}
+    def reconfigure_policy(self, new_policy_params, new_policy=None):
+        message = {'new_policy_params': new_policy_params}
+        if new_policy is not None:
+            message['new_policy_name'] = new_policy
+
         return self.connection.call(self.service_name, 'rcmd_reconfigure_policy', **message)
 
 
@@ -397,10 +411,10 @@ class ProvisionerClient(DashiCeiClient):
         instance_ids = [str(uuid.uuid4())]
 
         return self.connection.call(self.dashi_name, 'provision',
-                launch_id=launch_id, deployable_type=deployable_type,
-                instance_ids=instance_ids,
-                subscribers=[], site=site,
-                allocation=allocation, vars=vars, caller=caller)
+            launch_id=launch_id, deployable_type=deployable_type,
+            instance_ids=instance_ids,
+            subscribers=[], site=site,
+            allocation=allocation, vars=vars, caller=caller)
 
     def describe_nodes(self, nodes=None, caller=None):
         return self.connection.call(self.dashi_name, 'describe_nodes', nodes=nodes, caller=caller)
