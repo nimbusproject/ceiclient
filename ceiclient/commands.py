@@ -1341,26 +1341,62 @@ class HAStatus(CeiCommand):
 class HAReconfigurePolicy(CeiCommand):
 
     name = 'reconfigure'
+    POLICY_PARAMS = ('preserve_n', 'metric', 'minimum_processes', 'maximum_processes',
+        'sample_period', 'sample_function', 'cooldown_period', 'scale_up_threshold',
+        'scale_up_n_processes', 'scale_down_threshold', 'scale_down_n_processes')
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('process', metavar='HAPROCESS')
-        parser.add_argument('policy', metavar='new_policy.yml')
+        parser.add_argument('policy', nargs='?', metavar='new_policy.yml', default=None)
+        parser.add_argument('--preserve_n', metavar='N',
+            help="The number of instances to maintain of this service.")
+        parser.add_argument('--metric', metavar='METRICNAME',
+            help="The traffic sentinel metric to scale on.")
+        parser.add_argument('--minimum_processes', metavar='N',
+            help="The minimum number of processes to keep running.")
+        parser.add_argument('--maximum_processes', metavar='N',
+            help="The maximum number of processes to keep running.")
+        parser.add_argument('--sample_period', metavar='N',
+            help="The period of time (in seconds) to sample the metrics from.")
+        parser.add_argument('--sample_function', metavar='SAMPLEFUNC',
+            help="The function to apply to sampled metrics to get a single "
+            "value that can be compared against your scale thresholds. "
+            "Choose from Average, Sum, SampleCount, Maximum, Minimum.")
+        parser.add_argument('--cooldown_period', metavar='N',
+            help="The amount of time (in seconds) to wait in between each scaling action.")
+        parser.add_argument('--scale_up_threshold', metavar='N',
+            help="Scale up if metric exceeds this value. ")
+        parser.add_argument('--scale_up_n_processes', metavar='N',
+                help="The number of processes to start when scaling up.")
+        parser.add_argument('--scale_down_threshold', metavar='N',
+            help="Scale down if metric is lower than this value. ")
+        parser.add_argument('--scale_down_n_processes', metavar='N',
+                help="The number of processes to terminate when scaling down.")
 
     @staticmethod
     def execute(client, opts):
         ha_dashi_name = "ha_%s" % opts.process
         ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
-        try:
-            with open(opts.policy) as f:
-                policy = yaml.load(f)
-                policy_name = policy.get('policy_name')
-                policy_parameters = policy.get('policy_parameters')
-        except Exception, e:
-            raise CeiClientError("Problem reading policy file %s: %s" % (opts.policy, e))
+        if opts.policy is not None:
+            try:
+                with open(opts.policy) as f:
+                    policy = yaml.load(f)
+                    policy_name = policy.get('policy_name')
+                    policy_parameters = policy.get('policy_params')
+            except Exception, e:
+                raise CeiClientError("Problem reading policy file %s: %s" % (opts.policy, e))
+        else:
+            policy_name = None
+            policy_parameters = {}
+
         if policy_name is not None and policy_parameters is None:
             err = "You have set a new policy_name, but no new parameters"
             raise CeiClientError("Problem with policy file %s: %s" % (opts.policy, err))
+
+        for key, val in opts.__dict__.iteritems():
+            if val is not None and key in HAReconfigurePolicy.POLICY_PARAMS:
+                policy_parameters[key] = val
 
         try:
             return ha_client.reconfigure_policy(policy_parameters, new_policy=policy_name)
