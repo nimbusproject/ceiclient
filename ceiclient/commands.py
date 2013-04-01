@@ -435,7 +435,7 @@ class ReconfigureDomain(CeiCommand):
         for reconf in bool_reconfs or []:
             m = re.match(r, reconf)
             if m:
-                if h in m.group(1):
+                if m.group(1) in h:
                     section = h[m.group(1)]
                 else:
                     section = {}
@@ -452,7 +452,7 @@ class ReconfigureDomain(CeiCommand):
         for reconf in int_reconfs or []:
             m = re.match(r, reconf)
             if m:
-                if h in m.group(1):
+                if m.group(1) in h:
                     section = h[m.group(1)]
                 else:
                     section = {}
@@ -463,7 +463,7 @@ class ReconfigureDomain(CeiCommand):
         for reconf in string_reconfs or []:
             m = re.match(r, reconf)
             if m:
-                if h in m.group(1):
+                if m.group(1) in h:
                     section = h[m.group(1)]
                 else:
                     section = {}
