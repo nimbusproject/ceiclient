@@ -15,7 +15,7 @@ except ImportError:
 
 basic_deployment = """
 process-dispatchers:
-  processdispatcher:
+  process_dispatcher:
     config:
       processdispatcher:
         engines:
