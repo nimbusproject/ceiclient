@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
-from setuptools import setup, find_packages
+from setuptools import setup
 
-VERSION = '0.1.2'
+VERSION = '0.1.3'
 
 tests_require = ['nose', 'mock']
 setup(name='ceiclient',
@@ -18,7 +18,7 @@ setup(name='ceiclient',
               'ceictl=ceiclient.cli:start'
           ]
       },
-      install_requires=['cloudinitd>=1.2', 'dashi>=0.2.1', 'Jinja2', 'PyYAML',],
+      install_requires=['cloudinitd>=1.2', 'dashi>=0.2.1', 'Jinja2', 'PyYAML', ],
       tests_require=tests_require,
       extras_require={'test': tests_require},
       url="http://github.com/nimbusproject/ceiclient",
