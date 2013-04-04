@@ -172,10 +172,10 @@ class DTRSAddSite(CeiCommandPrintOutput):
             raise CeiClientError("Problem reading site definition file %s: %s" % (opts.site_def_file, e))
 
         try:
-            client.add_site(opts.site_name, site_def)
+            client.add_site(opts.caller, opts.site_name, site_def)
         except WriteConflictError:
             if opts.force:
-                client.update_site(opts.site_name, site_def)
+                client.update_site(opts.caller, opts.site_name, site_def)
                 return "Updated site %s" % opts.site_name
             else:
                 raise
@@ -192,7 +192,7 @@ class DTRSDescribeSite(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        return client.describe_site(opts.site_name)
+        return client.describe_site(opts.caller, opts.site_name)
 
 
 class DTRSListSites(CeiCommandPrintListOutput):
@@ -204,7 +204,7 @@ class DTRSListSites(CeiCommandPrintListOutput):
 
     @staticmethod
     def execute(client, opts):
-        return client.list_sites()
+        return client.list_sites(opts.caller)
 
 
 class DTRSRemoveSite(CeiCommandPrintOutput):
@@ -217,7 +217,7 @@ class DTRSRemoveSite(CeiCommandPrintOutput):
 
     @staticmethod
     def execute(client, opts):
-        client.remove_site(opts.site_name)
+        client.remove_site(opts.caller, opts.site_name)
         return "Removed site %s" % opts.site_name
 
 
@@ -241,7 +241,7 @@ class DTRSUpdateSite(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading site definition file %s: %s" % (opts.site_def_file, e))
 
-        client.update_site(opts.site_name, site_def)
+        client.update_site(opts.caller, opts.site_name, site_def)
         return "Updated site %s" % opts.site_name
 
 

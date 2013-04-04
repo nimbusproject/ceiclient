@@ -108,20 +108,20 @@ class DTRSClient(DashiCeiClient):
         return self.connection.call(self.dashi_name, 'update_dt', caller=caller,
                                     dt_name=dt_name, dt_definition=dt_definition)
 
-    def add_site(self, site_name, site_definition):
-        return self.connection.call(self.dashi_name, 'add_site', site_name=site_name, site_definition=site_definition)
+    def add_site(self, caller, site_name, site_definition):
+        return self.connection.call(self.dashi_name, 'add_site', caller=caller, site_name=site_name, site_definition=site_definition)
 
-    def describe_site(self, site_name):
-        return self.connection.call(self.dashi_name, 'describe_site', site_name=site_name)
+    def describe_site(self, caller, site_name):
+        return self.connection.call(self.dashi_name, 'describe_site', caller=caller, site_name=site_name)
 
-    def list_sites(self):
-        return self.connection.call(self.dashi_name, 'list_sites')
+    def list_sites(self, caller):
+        return self.connection.call(self.dashi_name, 'list_sites', caller=caller)
 
-    def remove_site(self, site_name):
-        return self.connection.call(self.dashi_name, 'remove_site', site_name=site_name)
+    def remove_site(self, caller, site_name):
+        return self.connection.call(self.dashi_name, 'remove_site', caller=caller, site_name=site_name)
 
-    def update_site(self, site_name, site_definition):
-        return self.connection.call(self.dashi_name, 'update_site',
+    def update_site(self, caller, site_name, site_definition):
+        return self.connection.call(self.dashi_name, 'update_site', caller=caller,
                                     site_name=site_name, site_definition=site_definition)
 
     def add_credentials(self, caller, site_name, site_credentials):
