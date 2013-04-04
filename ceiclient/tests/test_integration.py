@@ -88,6 +88,7 @@ class TestIntegration(TestFixture, unittest.TestCase):
 
         # Set up fake libcloud and start deployment
         self.fake_site, _ = self.make_fake_libcloud_site()
+        self.fake_site_name = "fake_site"
 
         self.setup_harness(exchange=self.exchange)
         self.addCleanup(self.teardown_harness)
@@ -105,8 +106,8 @@ class TestIntegration(TestFixture, unittest.TestCase):
 
     def load_dtrs(self):
         self.dtrs_client.add_dt(self.user, dt_name, example_dt)
-        self.dtrs_client.add_site(self.fake_site['name'], self.fake_site)
-        self.dtrs_client.add_credentials(self.user, self.fake_site['name'], fake_credentials)
+        self.dtrs_client.add_site(self.fake_site_name, self.fake_site)
+        self.dtrs_client.add_credentials(self.user, self.fake_site_name, fake_credentials)
 
     def test_process_definitions(self):
 
@@ -243,7 +244,7 @@ executable:
         self.assertEqual(out.rstrip(), dt_name)
 
     def test_dtrs_credentials(self):
-        site_name = self.fake_site['name']
+        site_name = self.fake_site_name
 
         cmd = "ceictl -x %s -c %s credentials list" % (self.exchange, self.user)
         out = subprocess.check_output(cmd, shell=True)
@@ -346,7 +347,7 @@ executable:
         self.assertEqual(out.rstrip(), site_name)
 
     def test_dtrs_sites(self):
-        site_name = self.fake_site['name']
+        site_name = self.fake_site_name
 
         cmd = "ceictl -x %s site list" % self.exchange
         out = subprocess.check_output(cmd, shell=True)
