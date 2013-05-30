@@ -38,12 +38,16 @@ class DashiCeiConnection(CeiConnection):
     def call(self, service, operation, **kwargs):
         try:
             return self.dashi_connection.call(service, operation, self.timeout, **kwargs)
+        except socket.timeout as e:
+            raise CeiClientError("timed out")
         except socket.error as e:
             raise CeiClientError(e)
 
     def fire(self, service, operation, **kwargs):
         try:
             return self.dashi_connection.fire(service, operation, **kwargs)
+        except socket.timeout as e:
+            raise CeiClientError("timed out")
         except socket.error as e:
             raise CeiClientError(e)
 
