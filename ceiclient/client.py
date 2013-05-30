@@ -213,10 +213,10 @@ class PDClient(DashiCeiClient):
         definition_type = process_definition.get('type')
         name = process_definition.get('name')
         description = process_definition.get('description')
+        args = dict(definition_id=process_definition_id, definition_type=definition_type,
+            executable=executable, name=name, description=description)
         # TODO: what is definition_type?
-        return self.connection.call(self.dashi_name, 'update_definition',
-                definition_id=process_definition_id, executable=executable,
-                definition_type=definition_type, name=name, description=description)
+        return self.connection.call(self.dashi_name, 'update_definition', args=args)
 
     def describe_process_definition(self, process_definition_id='', process_definition_name=''):
         kwargs = {}
