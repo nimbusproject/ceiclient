@@ -124,22 +124,31 @@ class DTRSClient(DashiCeiClient):
         return self.connection.call(self.dashi_name, 'update_site', caller=caller,
                                     site_name=site_name, site_definition=site_definition)
 
-    def add_credentials(self, caller, site_name, site_credentials):
+    def add_credentials(self, caller, site_name, site_credentials, credential_type='site'):
         return self.connection.call(self.dashi_name, 'add_credentials', caller=caller,
-                                    site_name=site_name, site_credentials=site_credentials)
+                                    site_name=site_name, site_credentials=site_credentials,
+                                    credential_type=credential_type)
 
-    def describe_credentials(self, caller, site_name):
-        return self.connection.call(self.dashi_name, 'describe_credentials', caller=caller, site_name=site_name)
+    def describe_credentials(self, caller, site_name, credential_type='site'):
+        return self.connection.call(self.dashi_name, 'describe_credentials',
+                                    caller=caller, site_name=site_name,
+                                    credential_type=credential_type)
 
-    def list_credentials(self, caller):
-        return self.connection.call(self.dashi_name, 'list_credentials', caller=caller)
+    def list_credentials(self, caller, credential_type='site'):
+        return self.connection.call(self.dashi_name, 'list_credentials',
+                                    caller=caller,
+                                    credential_type=credential_type)
 
-    def remove_credentials(self, caller, site_name):
-        return self.connection.call(self.dashi_name, 'remove_credentials', caller=caller, site_name=site_name)
+    def remove_credentials(self, caller, site_name, credential_type='site'):
+        return self.connection.call(self.dashi_name, 'remove_credentials',
+                                    caller=caller, site_name=site_name,
+                                    credential_type=credential_type)
 
-    def update_credentials(self, caller, site_name, site_credentials):
-        return self.connection.call(self.dashi_name, 'update_credentials', caller=caller,
-                                    site_name=site_name, site_credentials=site_credentials)
+    def update_credentials(self, caller, site_name, site_credentials, credential_type='site'):
+        return self.connection.call(self.dashi_name, 'update_credentials',
+                                    caller=caller, site_name=site_name,
+                                    site_credentials=site_credentials,
+                                    credential_type=credential_type)
 
 
 class EPUMClient(DashiCeiClient):

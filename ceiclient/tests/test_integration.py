@@ -256,7 +256,7 @@ executable:
             subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
         except subprocess.CalledProcessError as e:
             self.assertEqual(e.returncode, 1)
-            self.assertEqual(e.output.rstrip(), "Error: Credentials not found for user %s and site %s" % (self.user, missing_site_name))
+            self.assertEqual(e.output.rstrip(), "Error: Credentials '%s' not found for user %s and type site" % (missing_site_name, self.user))
         else:
             self.fail("Expected failure to remove nonexistent credentials")
 
@@ -319,7 +319,7 @@ executable:
                 subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
             except subprocess.CalledProcessError as e:
                 self.assertEqual(e.returncode, 1)
-                self.assertEqual(e.output.rstrip(), "Error: Credentials for site %s already exist" % new_site_name)
+                self.assertEqual(e.output.rstrip(), "Error: Credentials '%s' of type 'site' already exist" % new_site_name)
             else:
                 self.fail("Expected failure to add site credentials that already exist")
 

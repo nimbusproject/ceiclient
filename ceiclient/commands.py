@@ -251,10 +251,11 @@ class DTRSAddCredentials(CeiCommandPrintOutput):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('site_name', action='store', help='The name of the site to be added.')
+        parser.add_argument('name', action='store', help='The name of the credential to be added.')
         parser.add_argument(
             '--definition', dest='credentials_def_file', action='store',
             help='Set the credentials definition to use.')
+        parser.add_argument('--type', action='store', help='Credential type to store. default is site')
         parser.add_argument('--force', '-f', help="Update the credential if it exists", action='store_true')
 
     @staticmethod
@@ -268,15 +269,17 @@ class DTRSAddCredentials(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading credentials definition file %s: %s" % (opts.credentials_def_file, e))
 
+        kwargs = {'credential_type': opts.type} if opts.type else {}
+
         try:
-            client.add_credentials(opts.caller, opts.site_name, credentials_def)
+            client.add_credentials(opts.caller, opts.name, credentials_def, **kwargs)
         except WriteConflictError:
             if opts.force:
-                client.update_credentials(opts.caller, opts.site_name, credentials_def)
-                return "Updated credentials of site %s for user %s" % (opts.site_name, opts.caller)
+                client.update_credentials(opts.caller, opts.name, credentials_def, **kwargs)
+                return "Updated credentials of site %s for user %s" % (opts.name, opts.caller)
             else:
                 raise
-        return "Added credentials of site %s for user %s" % (opts.site_name, opts.caller)
+        return "Added credentials of site %s for user %s" % (opts.name, opts.caller)
 
 
 class DTRSDescribeCredentials(CeiCommand):
@@ -285,11 +288,13 @@ class DTRSDescribeCredentials(CeiCommand):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('site_name', action='store', help='The site to describe')
+        parser.add_argument('name', action='store', help='The credential to describe')
+        parser.add_argument('--type', action='store', help='Credential type to query. default is site')
 
     @staticmethod
     def execute(client, opts):
-        return client.describe_credentials(opts.caller, opts.site_name)
+        kwargs = {'credential_type': opts.type} if opts.type else {}
+        return client.describe_credentials(opts.caller, opts.name, **kwargs)
 
 
 class DTRSListCredentials(CeiCommandPrintListOutput):
@@ -297,11 +302,13 @@ class DTRSListCredentials(CeiCommandPrintListOutput):
     name = 'list'
 
     def __init__(self, subparsers):
-        subparsers.add_parser(self.name)
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('--type', action='store', help='Credential type to query. default is site')
 
     @staticmethod
     def execute(client, opts):
-        return client.list_credentials(caller=opts.caller)
+        kwargs = {'credential_type': opts.type} if opts.type else {}
+        return client.list_credentials(caller=opts.caller, **kwargs)
 
 
 class DTRSRemoveCredentials(CeiCommandPrintOutput):
@@ -310,12 +317,14 @@ class DTRSRemoveCredentials(CeiCommandPrintOutput):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('site_name', action='store', help='The site to remove')
+        parser.add_argument('name', action='store', help='The credential to remove')
+        parser.add_argument('--type', action='store', help='Credential type to query. default is site')
 
     @staticmethod
     def execute(client, opts):
-        client.remove_credentials(opts.caller, opts.site_name)
-        return "Removed credentials of site %s for user %s" % (opts.site_name, opts.caller)
+        kwargs = {'credential_type': opts.type} if opts.type else {}
+        client.remove_credentials(opts.caller, opts.name, **kwargs)
+        return "Removed credentials of site %s for user %s" % (opts.name, opts.caller)
 
 
 class DTRSUpdateCredentials(CeiCommandPrintOutput):
@@ -324,9 +333,10 @@ class DTRSUpdateCredentials(CeiCommandPrintOutput):
 
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
-        parser.add_argument('site_name', action='store', help='The name of the site to be updated.')
+        parser.add_argument('name', action='store', help='The name of the credential to update.')
         parser.add_argument('--definition', dest='credentials_def_file', action='store',
             help='The credentials definition to use.')
+        parser.add_argument('--type', action='store', help='Credential type to update. default is site')
 
     @staticmethod
     def execute(client, opts):
@@ -339,8 +349,10 @@ class DTRSUpdateCredentials(CeiCommandPrintOutput):
         except Exception, e:
             raise CeiClientError("Problem reading credentials definition file %s: %s" % (opts.credentials_def_file, e))
 
-        client.update_credentials(opts.caller, opts.site_name, credentials_def)
-        return "Updated credentials of site %s for user %s" % (opts.site_name, opts.caller)
+        kwargs = {'credential_type': opts.type} if opts.type else {}
+
+        client.update_credentials(opts.caller, opts.name, credentials_def, **kwargs)
+        return "Updated credentials of site %s for user %s" % (opts.name, opts.caller)
 
 
 class AddDomain(CeiCommand):
