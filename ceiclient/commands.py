@@ -779,6 +779,7 @@ class PDScheduleProcess(CeiCommand):
         group.add_argument('--definition-name', metavar='DEFINITION', help="process definition name")
 
         parser.add_argument('--config', metavar='config.yml')
+        parser.add_argument('--execution-engine-id', metavar='execution_engine_id')
         parser.add_argument('--queueing-mode', metavar='queueing_mode')
         parser.add_argument('--restart-mode', metavar='restart_mode')
 
@@ -803,6 +804,7 @@ class PDScheduleProcess(CeiCommand):
                 process_definition_id=opts.definition_id,
                 process_definition_name=opts.definition_name,
                 configuration=configuration, queueing_mode=opts.queueing_mode,
+                execution_engine_id=opts.execution_engine_id,
                 restart_mode=opts.restart_mode)
 
 
