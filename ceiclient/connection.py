@@ -1,13 +1,17 @@
 import socket
 import sys
+import json
+import requests
 import traceback
 
 from dashi import DashiConnection
 from dashi.bootstrap import DEFAULT_EXCHANGE
+from dashi.exceptions import NotFoundError, WriteConflictError, BadRequestError
 
 from ceiclient.exception import CeiClientError
 
 PYON_RETRIES = 5
+
 
 class CeiConnection(object):
     """Abstract class defining the interface to talk with CEI services"""
@@ -30,10 +34,11 @@ class DashiCeiConnection(CeiConnection):
         self.timeout = timeout
 
         self.dashi_connection = DashiConnection(self._name,
-                'amqp://%s:%s@%s:%s//' % (self.amqp_username,
+                'amqp://%s:%s@%s:%s//' % (
+                    self.amqp_username,
                     self.amqp_password, self.amqp_broker,
-                    self.amqp_port), self.amqp_exchange, ssl=ssl,
-                    sysname=self.sysname)
+                    self.amqp_port),
+                self.amqp_exchange, ssl=ssl, sysname=self.sysname)
 
     def call(self, service, operation, **kwargs):
         try:
@@ -134,3 +139,77 @@ class PyonCeiConnection(CeiConnection):
     def disconnect(self):
         self.pyon_node.stop_node()
         self.pyon_ioloop.kill()
+
+
+class PyonHTTPGateWayCeiConnection(CeiConnection):
+
+    def __init__(self, hostname, timeout=None, port=5000, ssl=False):
+
+        self.hostname = hostname
+        self.timeout = timeout
+        self.port = port
+        self.ssl = ssl
+
+        if self.ssl:
+            self.scheme = "https"
+        else:
+            self.scheme = "http"
+
+        self.url = "%s://%s:%s" % (self.scheme, self.hostname, self.port)
+
+    def _make_url(self, service, operation, call_type=None):
+        if call_type is None:
+            call_type = 'service'
+        elif call_type == 'agent':
+            operation = 'execute_agent'
+        return "%s/ion-%s/%s/%s" % (self.url, call_type, service, operation)
+
+    def _make_parameters(self, service, operation, params, call_type=None):
+        if call_type is None:
+            call_type = 'service'
+
+        if call_type == 'service':
+            payload = {
+                'serviceRequest': {
+                    'serviceName': service,
+                    'serviceOp': operation,
+                    'params': params
+                }
+            }
+        else:
+            params['command'] = {
+                'type_': 'AgentCommand',
+                'command': operation
+            }
+
+            payload = {
+                'agentRequest': {
+                    'agentId': service,
+                    'agentOp': 'execute_agent',
+                    'params': params
+                }
+            }
+
+        params = {'payload': json.dumps(payload)}
+        return params
+
+    def call(self, service, operation, retry=PYON_RETRIES, call_type=None, **kwargs):
+
+        url = self._make_url(service, operation, call_type=call_type)
+        params = self._make_parameters(service, operation, kwargs, call_type=call_type)
+        result = requests.post(url, data=params)
+        result_json = result.json()
+        try:
+            return result_json['data']['GatewayResponse']
+        except KeyError:
+            error = result_json['data']['GatewayError']
+            if error.get('Exception') == 'NotFound':
+                raise NotFoundError("%s: %s" % (error['Exception'], error['Message']))
+            else:
+                raise CeiClientError("%s: %s" % (error['Exception'], error['Message']))
+
+    def fire(self, service, operation, **kwargs):
+        pass
+
+    def disconnect(self):
+        pass

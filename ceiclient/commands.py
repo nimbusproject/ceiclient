@@ -7,7 +7,8 @@ from jinja2 import Template
 from dashi.exceptions import NotFoundError, WriteConflictError, BadRequestError
 
 from client import DTRSClient, EPUMClient, HAAgentClient, PDClient, \
-    ProvisionerClient, PyonPDClient, PyonHAAgentClient
+    ProvisionerClient, PyonPDClient, PyonHAAgentClient, PyonHTTPPDClient, \
+    PyonHTTPHAAgentClient
 from exception import CeiClientError
 from common import safe_print, safe_pprint
 
@@ -696,6 +697,8 @@ class PDSyncProcessDefinitions(CeiCommand):
             if found_definition:
                 found_definition_id = found_definition.get('definition_id')
                 if not found_definition_id:
+                    found_definition_id = found_definition.get('_id')
+                if not found_definition_id:
                     raise CeiClientError("Found '%s' definition without an ID??" % name)
                 found_executable = found_definition.get('executable')
                 if found_executable != definition['executable']:
@@ -852,14 +855,16 @@ Configuration = {{ result.configuration }}
     def output(result):
         template = Template(PDDescribeProcesses.output_template)
         for raw_proc in result:
+            raw_proc = PDDescribeProcess.extract_details(raw_proc)
             safe_print(template.render(result=raw_proc))
 
     @staticmethod
     def details(result):
         template = Template(PDDescribeProcesses.details_template)
         for raw_proc in result:
-            raw_proc['constraints'] = yaml.safe_dump(raw_proc['constraints']).rstrip('\n')
-            raw_proc['configuration'] = yaml.safe_dump(raw_proc['configuration']).rstrip('\n')
+            raw_proc = PDDescribeProcess.extract_details(raw_proc)
+            raw_proc['constraints'] = yaml.safe_dump(raw_proc.get('constraints', {})).rstrip('\n')
+            raw_proc['configuration'] = yaml.safe_dump(raw_proc.get('configuration', {})).rstrip('\n')
             safe_print(template.render(result=raw_proc))
 
 
@@ -905,6 +910,28 @@ Constraints    = {{ result.constraints }}
 Configuration  = {{ result.configuration }}
 '''
 
+    pyon_process_state_map = {
+        1: '200-REQUESTED', 2: '300-WAITING', 3: '400-PENDING', 4: '500-RUNNING',
+        5: '600-TERMINATING', 6: '700-TERMINATED', 7: '850-FAILED',
+        8: '900-REJECTED', 9: '800-EXITED'
+    }
+
+    pyon_process_queue_map = {
+        1: 'NEVER', 2: 'ALWAYS', 3: 'START_ONLY', 4: 'RESTART_ONLY',
+    }
+
+    pyon_process_restart_map = {
+        1: 'NEVER', 2: 'ALWAYS', 3: 'ABNORMAL',
+    }
+
+    pyon_process_queue_reverse_map = {
+        'NEVER': 1, 'ALWAYS': 2, 'START_ONLY': 3, 'RESTART_ONLY': 4,
+    }
+
+    pyon_process_restart_map = {
+        'NEVER': 1, 'ALWAYS': 2, 'ABNORMAL': 3,
+    }
+
     def __init__(self, subparsers):
         parser = subparsers.add_parser(self.name)
         parser.add_argument('process_id', action='store', help='The UPID of the process to describe')
@@ -914,10 +941,35 @@ Configuration  = {{ result.configuration }}
         return client.describe_process(opts.process_id)
 
     @staticmethod
+    def extract_details(process):
+        result = dict(process)
+        if 'process_id' in result:
+            result['upid'] = result['process_id']
+
+        if 'process_configuration' in result:
+            result['configuration'] = result['process_configuration']
+
+        if 'process_state' in result:
+            result['state'] = PDDescribeProcess.pyon_process_state_map.get(int(result['process_state']))
+        if 'detail' in result:
+            detail = result['detail']
+            result['hostname'] = detail.get('hostname')
+            result['assigned'] = detail.get('assigned')
+            result['node_exclusive'] = detail.get('node_exclusive')
+            result['queueing_mode'] = detail.get('queueing_mode')
+            result['restart_mode'] = detail.get('restart_mode')
+            result['starts'] = detail.get('starts')
+
+        return result
+
+    @staticmethod
     def output(result):
         template = Template(PDDescribeProcess.output_template)
-        result['constraints'] = yaml.safe_dump(result['constraints']).rstrip('\n')
-        result['configuration'] = yaml.safe_dump(result['configuration']).rstrip('\n')
+
+        result = PDDescribeProcess.extract_details(result)
+
+        result['constraints'] = yaml.safe_dump(result.get('constraints', {})).rstrip('\n')
+        result['configuration'] = yaml.safe_dump(result.get('configuration', {})).rstrip('\n')
         safe_print(template.render(result=result))
 
 
@@ -942,6 +994,7 @@ class PDWaitProcess(CeiCommand):
             process = client.describe_process(opts.process_id)
 
             if process:
+                process = PDDescribeProcess.extract_details(process)
                 state = process['state']
 
                 if state in ("500-RUNNING", "800-EXITED"):
@@ -1409,6 +1462,7 @@ class HAReconfigurePolicy(CeiCommand):
             raise CeiClientError("Problem with policy file %s: %s" % (opts.policy, err))
 
         for key, val in opts.__dict__.iteritems():
+
             if val is not None and key in HAReconfigurePolicy.POLICY_PARAMS:
                 policy_parameters[key] = val
 
@@ -1424,6 +1478,246 @@ class HAReconfigurePolicy(CeiCommand):
 
 
 class HAWaitStatus(CeiCommand):
+
+    name = 'wait'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process', metavar='HAPROCESS')
+        parser.add_argument('--max', action='store', type=float, default=9600,
+                help='Max seconds to wait for ready state')
+        parser.add_argument('--poll', action='store', type=float, default=0.1,
+                help='Seconds to wait between polls')
+
+    @staticmethod
+    def execute(client, opts):
+        ha_dashi_name = "ha_%s" % opts.process
+        ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
+
+        deadline = time.time() + opts.max
+        while 1:
+
+            status = ha_client.status()
+            if status:
+                if status in ("READY", "STEADY"):
+                    return status
+                elif status == "FAILED":
+                    raise CeiClientError("HA Agent in %s state" % status)
+
+            if time.time() + opts.poll >= deadline:
+                raise CeiClientError("Timed out waiting for HA Agent")
+            time.sleep(opts.poll)
+
+    @staticmethod
+    def output(result):
+        safe_print(result)
+
+
+class PyonHTTPHAList(CeiCommand):
+
+    name = 'list'
+
+    details_template = '''
+HA Agent for {{ result.configuration.highavailability.process_definition_name }}
+Process ID    = {{ result.upid }}
+Process Name  = {{ result.name }}
+Process State = {{ result.state }}
+Dashi Name    = {{ result.configuration.highavailability.dashi_name }}
+Hostname      = {{ result.hostname }}
+EEAgent       = {{ result.assigned }}
+'''
+
+    def __init__(self, subparsers):
+        subparsers.add_parser(self.name)
+
+    @staticmethod
+    def execute(client, opts):
+        all_procs = client.describe_processes()
+        ha_procs = [proc for proc in all_procs if proc['name'] and proc['name'].startswith('haagent')]
+        non_terminated_procs = [proc for proc in ha_procs if proc['state'] < '600']
+        return non_terminated_procs
+
+    @staticmethod
+    def output(result):
+        for raw_proc in result:
+            safe_print(raw_proc['configuration']['highavailability']['process_definition_name'])
+
+    @staticmethod
+    def details(result):
+        template = Template(HAList.details_template)
+        for raw_proc in result:
+            safe_print(template.render(result=raw_proc))
+
+
+class PyonHTTPHADescribe(CeiCommand):
+
+    name = 'describe'
+
+    output_template = '''HA Agent for {{ result.name}}
+Service ID    = {{ result.service_id }}
+HA Status     = {{ result.status }}
+Processes     = {{ result.managed_upids }}
+Policy        = {{ result.policy }}
+'''
+
+    details_template = '''HA Agent for {{ result.name}}
+Service ID    = {{ result.service_id }}
+HA Status     = {{ result.status }}
+Processes     = {{ result.managed_upids }}
+Policy        = {{ result.policy }}
+Policy Parameters: {% for key, val in result.policy_params.iteritems() %}
+  {{ key }} = {{ val }}{% endfor %}
+'''
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process', metavar='HAPROCESS')
+
+    @staticmethod
+    def execute(client, opts):
+        ha_dashi_name = "ha_%s" % opts.process
+        ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
+        dump = ha_client.dump()
+        dump['name'] = opts.process
+        dump['status'] = ha_client.status()
+        return dump
+
+    @staticmethod
+    def output(result):
+        result['managed_upids'] = ",".join(result['managed_upids'])
+        template = Template(HADescribe.output_template)
+        safe_print(template.render(result=result))
+
+    @staticmethod
+    def details(result):
+        result['managed_upids'] = ",".join(result['managed_upids'])
+        template = Template(HADescribe.details_template)
+        safe_print(template.render(result=result))
+
+
+class PyonHTTPHADumpPolicy(CeiCommand):
+
+    name = 'dump_policy'
+
+    output_template = '''---
+policy_name: {{ result.policy }}
+policy_params: {% for key, val in result.policy_params.iteritems() %}
+  {{key}}: {{val}}{% endfor %}
+'''
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process', metavar='HAPROCESS')
+
+    @staticmethod
+    def execute(client, opts):
+        ha_dashi_name = "ha_%s" % opts.process
+        ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
+        dump = ha_client.dump()
+        for key in dump.keys():
+            if key not in ('policy', 'policy_params'):
+                del dump[key]
+        return dump
+
+    @staticmethod
+    def output(result):
+        template = Template(HADumpPolicy.output_template)
+        safe_print(template.render(result=result))
+
+
+class PyonHTTPHAStatus(CeiCommand):
+
+    name = 'status'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process', metavar='HAPROCESS')
+
+    @staticmethod
+    def execute(client, opts):
+        process_id = client.get_ha_process_id(opts.process)
+        if not process_id:
+            raise CeiClientError("Couldn't find agent for process %s" % opts.process)
+        ha_client = PyonHTTPHAAgent.ha_client(client.connection, dashi_name=process_id)
+        return ha_client.status()
+
+    @staticmethod
+    def output(result):
+        safe_print(result)
+
+
+class PyonHTTPHAReconfigurePolicy(CeiCommand):
+
+    name = 'reconfigure'
+    POLICY_PARAMS = ('preserve_n', 'metric', 'minimum_processes', 'maximum_processes',
+        'sample_period', 'sample_function', 'cooldown_period', 'scale_up_threshold',
+        'scale_up_n_processes', 'scale_down_threshold', 'scale_down_n_processes')
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('process', metavar='HAPROCESS')
+        parser.add_argument('policy', nargs='?', metavar='new_policy.yml', default=None)
+        parser.add_argument('--preserve_n', metavar='N',
+            help="The number of instances to maintain of this service.")
+        parser.add_argument('--metric', metavar='METRICNAME',
+            help="The traffic sentinel metric to scale on.")
+        parser.add_argument('--minimum_processes', metavar='N',
+            help="The minimum number of processes to keep running.")
+        parser.add_argument('--maximum_processes', metavar='N',
+            help="The maximum number of processes to keep running.")
+        parser.add_argument('--sample_period', metavar='N',
+            help="The period of time (in seconds) to sample the metrics from.")
+        parser.add_argument('--sample_function', metavar='SAMPLEFUNC',
+            help="The function to apply to sampled metrics to get a single "
+            "value that can be compared against your scale thresholds. "
+            "Choose from Average, Sum, SampleCount, Maximum, Minimum.")
+        parser.add_argument('--cooldown_period', metavar='N',
+            help="The amount of time (in seconds) to wait in between each scaling action.")
+        parser.add_argument('--scale_up_threshold', metavar='N',
+            help="Scale up if metric exceeds this value. ")
+        parser.add_argument('--scale_up_n_processes', metavar='N',
+                help="The number of processes to start when scaling up.")
+        parser.add_argument('--scale_down_threshold', metavar='N',
+            help="Scale down if metric is lower than this value. ")
+        parser.add_argument('--scale_down_n_processes', metavar='N',
+                help="The number of processes to terminate when scaling down.")
+
+    @staticmethod
+    def execute(client, opts):
+        ha_dashi_name = "ha_%s" % opts.process
+        ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
+        if opts.policy is not None:
+            try:
+                with open(opts.policy) as f:
+                    policy = yaml.load(f)
+                    policy_name = policy.get('policy_name')
+                    policy_parameters = policy.get('policy_params')
+            except Exception, e:
+                raise CeiClientError("Problem reading policy file %s: %s" % (opts.policy, e))
+        else:
+            policy_name = None
+            policy_parameters = {}
+
+        if policy_name is not None and policy_parameters is None:
+            err = "You have set a new policy_name, but no new parameters"
+            raise CeiClientError("Problem with policy file %s: %s" % (opts.policy, err))
+
+        for key, val in opts.__dict__.iteritems():
+            if val is not None and key in HAReconfigurePolicy.POLICY_PARAMS:
+                policy_parameters[key] = val
+
+        try:
+            return ha_client.reconfigure_policy(policy_parameters, new_policy=policy_name)
+        except BadRequestError as e:
+            raise CeiClientError("Bad Request: %s" % e.value)
+
+    @staticmethod
+    def output(result):
+        if result is not None:
+            safe_print(result)
+
+
+class PyonHTTPHAWaitStatus(CeiCommand):
 
     name = 'wait'
 
@@ -1662,6 +1956,37 @@ class PDSystemBoot(CeiService):
         return PDClient(connection, dashi_name=dashi_name)
 
 
+class PyonHTTPProcess(CeiService):
+
+    name = 'process'
+    help = 'Control the Process Dispatcher Service'
+
+    commands = {}
+    for command in [PDScheduleProcess, PDDescribeProcess, PDDescribeProcesses,
+            PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return PyonHTTPPDClient(connection, dashi_name=dashi_name)
+
+
+class PyonHTTPProcessDefinition(CeiService):
+
+    name = 'process-definition'
+    help = 'Control the Process Dispatcher Service'
+
+    commands = {}
+    for command in [PDCreateProcessDefinition, PDUpdateProcessDefinition,
+            PDSyncProcessDefinitions, PDDescribeProcessDefinition,
+            PDRemoveProcessDefinition, PDListProcessDefinitions]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return PyonHTTPPDClient(connection, dashi_name=dashi_name)
+
+
 class Process(CeiService):
 
     name = 'process'
@@ -1723,6 +2048,26 @@ class HAAgent(CeiService):
     @staticmethod
     def ha_client(connection, dashi_name=None):
         return HAAgentClient(connection, dashi_name=dashi_name)
+
+
+class PyonHTTPHAAgent(CeiService):
+
+    name = 'ha'
+    help = 'Control a High Availability Agent'
+
+    commands = {}
+    for command in [PyonHTTPHAStatus, PyonHTTPHAReconfigurePolicy, PyonHTTPHAWaitStatus,
+            PyonHTTPHADumpPolicy, PyonHTTPHADescribe, PyonHTTPHAList]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return PyonHTTPPDClient(connection, dashi_name=dashi_name)
+
+    @staticmethod
+    def ha_client(connection, dashi_name=None):
+
+        return PyonHTTPHAAgentClient(connection, dashi_name=dashi_name)
 
 
 class PyonProcessDefinition(CeiService):
@@ -1792,3 +2137,7 @@ PYON_SERVICES = {}
 for service in [PyonProcessDefinition, PyonPDProcess,
         PyonPDExecutionEngine, PyonHAAgent]:
     PYON_SERVICES[service.name] = service
+
+PYON_GATEWAY_SERVICES = {}
+for service in [PyonHTTPProcess, PyonHTTPProcessDefinition, PyonHTTPHAAgent]:
+    PYON_GATEWAY_SERVICES[service.name] = service

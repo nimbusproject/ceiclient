@@ -9,8 +9,8 @@ import yaml
 
 import ceiclient
 from ceiclient.exception import CeiClientError
-from ceiclient.commands import DASHI_SERVICES, PYON_SERVICES
-from ceiclient.connection import DashiCeiConnection, PyonCeiConnection
+from ceiclient.commands import DASHI_SERVICES, PYON_SERVICES, PYON_GATEWAY_SERVICES
+from ceiclient.connection import DashiCeiConnection, PyonCeiConnection, PyonHTTPGateWayCeiConnection
 from ceiclient.common import safe_print
 
 DEFAULT_RABBITMQ_USERNAME = 'guest'
@@ -24,6 +24,12 @@ def using_pyon():
     """Peek into argv to see if user wants to use pyon or not
     """
     return '-P' in sys.argv or '--pyon' in sys.argv
+
+
+def using_pyon_gateway():
+    """Peek into argv to see if user wants to use pyon gateway or not
+    """
+    return '-G' in sys.argv or '--pyon-gateway' in sys.argv
 
 parser = argparse.ArgumentParser(description='Client to control CEI services')
 
@@ -40,9 +46,12 @@ parser.add_argument('--service-name', '-d', action='store', default=None)
 parser.add_argument('--sysname', '-s', action='store', default=None)
 parser.add_argument('--caller', '-c', action='store', dest='caller', default=None)
 parser.add_argument('--pyon', '-P', action='store_const', const=True)
+parser.add_argument('--pyon-gateway', '-G', action='store_const', const=True)
 
 if using_pyon():
     SERVICES = PYON_SERVICES
+elif using_pyon_gateway():
+    SERVICES = PYON_GATEWAY_SERVICES
 else:
     SERVICES = DASHI_SERVICES
 
@@ -55,6 +64,7 @@ for service_name, service in SERVICES.items():
         command(service_subparsers)
 
 opts = parser.parse_args()
+
 
 def main():
     if opts.service not in SERVICES:
@@ -97,6 +107,11 @@ def main():
                 sysname=amqp_settings.get('coi_services_system_name'),
                 timeout=opts.timeout)
         client = service.client(conn, service_name=opts.service_name)
+    elif opts.pyon_gateway:
+        conn = PyonHTTPGateWayCeiConnection(amqp_settings['rabbitmq_host'],
+                port=5000,
+                timeout=opts.timeout)
+        client = service.client(conn, dashi_name=opts.service_name)
     else:
         conn = DashiCeiConnection(amqp_settings['rabbitmq_host'],
                 amqp_settings['rabbitmq_username'],
