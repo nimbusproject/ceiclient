@@ -18,7 +18,7 @@ setup(name='ceiclient',
               'ceictl=ceiclient.cli:start'
           ]
       },
-      install_requires=['cloudinitd>=1.2', 'dashi>=0.2.1', 'Jinja2', 'PyYAML', ],
+      install_requires=['cloudinitd>=1.2', 'dashi>=0.2.1', 'Jinja2', 'PyYAML', 'requests'],
       tests_require=tests_require,
       extras_require={'test': tests_require},
       url="http://github.com/nimbusproject/ceiclient",
