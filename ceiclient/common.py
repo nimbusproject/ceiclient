@@ -3,6 +3,7 @@ import sys
 import errno
 import pprint
 
+
 def safe_print(p_str):
     try:
         print(p_str)
@@ -12,6 +13,7 @@ def safe_print(p_str):
         else:
             raise
 
+
 def safe_pprint(p_str):
     try:
         pprint.pprint(p_str)
@@ -20,6 +22,7 @@ def safe_pprint(p_str):
             sys.exit(0)
         else:
             raise
+
 
 def load_cloudinitd_db(run_name):
 
@@ -69,6 +72,17 @@ def load_cloudinitd_db(run_name):
             vars['coi_services_system_name'] = basenode.get_attr_from_bag("coi_services_system_name")
         except ConfigException:
             vars['coi_services_system_name'] = None
+
+        try:
+            vars['gateway_port'] = basenode.get_attr_from_bag("gateway_port")
+        except ConfigException:
+            vars['gateway_port'] = None
+
+        try:
+            vars['gateway_host'] = basenode.get_attr_from_bag("hostname")
+        except ConfigException:
+            vars['gateway_host'] = None
+
         try:
             vars['dashi_sysname'] = basenode.get_attr_from_bag("dashi_sysname")
         except ConfigException:

@@ -377,6 +377,7 @@ class PDClient(DashiCeiClient):
         return self.connection.call(self.dashi_name, 'remove_definition', definition_id=process_definition_id)
 
     def list_process_definitions(self):
+        print self.connection
         return self.connection.call(self.dashi_name, 'list_definitions')
 
     def schedule_process(self, upid, process_definition_id=None,
@@ -440,16 +441,16 @@ class PyonHTTPHAAgentClient(DashiCeiClient):
     dashi_name = 'ha_agent'  # this will almost always be overridden
 
     def status(self):
-        return self.connection.call(self.dashi_name, 'status', call_type='agent')
+        return self.connection.call(self.dashi_name, 'status', call_type='agent_resource')
 
     def dump(self):
-        return self.connection.call(self.dashi_name, 'dump', call_type='agent')
+        return self.connection.call(self.dashi_name, 'dump', call_type='agent_resource')
 
     def reconfigure_policy(self, new_policy_params, new_policy=None):
         message = {'new_policy_params': new_policy_params}
         if new_policy is not None:
             message['new_policy_name'] = new_policy
-        return self.connection.call(self.dashi_name, 'reconfigure_policy', call_type='agent', **message)
+        return self.connection.call(self.dashi_name, 'reconfigure_policy', call_type='agent_resource', **message)
 
 
 class PyonPDClient(PyonCeiClient):
@@ -582,7 +583,7 @@ class ProvisionerClient(DashiCeiClient):
         return self.connection.call(self.dashi_name, 'provision',
             launch_id=launch_id, deployable_type=deployable_type,
             instance_ids=instance_ids,
-            subscribers=[], site=site,
+            site=site,
             allocation=allocation, vars=vars, caller=caller)
 
     def describe_nodes(self, nodes=None, caller=None):

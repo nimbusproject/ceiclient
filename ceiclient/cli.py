@@ -18,6 +18,8 @@ DEFAULT_RABBITMQ_PASSWORD = 'guest'
 DEFAULT_RABBITMQ_HOSTNAME = 'localhost'
 DEFAULT_RABBITMQ_EXCHANGE = None
 DEFAULT_TIMEOUT = 5
+DEFAULT_GATEWAY_HOSTNAME = 'localhost'
+DEFAULT_GATEWAY_PORT = 5001
 
 
 def using_pyon():
@@ -47,6 +49,8 @@ parser.add_argument('--sysname', '-s', action='store', default=None)
 parser.add_argument('--caller', '-c', action='store', dest='caller', default=None)
 parser.add_argument('--pyon', '-P', action='store_const', const=True)
 parser.add_argument('--pyon-gateway', '-G', action='store_const', const=True)
+parser.add_argument('--gateway-port', '-R', action='store', default=None)
+parser.add_argument('--gateway-host', '-H', action='store', default=None)
 
 if using_pyon():
     SERVICES = PYON_SERVICES
@@ -82,6 +86,8 @@ def main():
     amqp_settings['rabbitmq_username'] = DEFAULT_RABBITMQ_USERNAME
     amqp_settings['rabbitmq_password'] = DEFAULT_RABBITMQ_PASSWORD
     amqp_settings['rabbitmq_exchange'] = DEFAULT_RABBITMQ_EXCHANGE
+    amqp_settings['gateway_port'] = DEFAULT_GATEWAY_PORT
+    amqp_settings['gateway_host'] = DEFAULT_GATEWAY_HOSTNAME
 
     # Read AMQP settings and credentials from the cloudinitd DB if possible
     if opts.run_name:
@@ -96,6 +102,10 @@ def main():
         amqp_settings['rabbitmq_password'] = opts.password
     if opts.exchange:
         amqp_settings['rabbitmq_exchange'] = opts.exchange
+    if opts.gateway_port:
+        amqp_settings['gateway_port'] = opts.gateway_port
+    if opts.gateway_host:
+        amqp_settings['gateway_host'] = opts.gateway_host
     if opts.sysname:
         amqp_settings['coi_services_system_name'] = opts.sysname
         amqp_settings['dashi_sysname'] = opts.sysname
@@ -108,8 +118,8 @@ def main():
                 timeout=opts.timeout)
         client = service.client(conn, service_name=opts.service_name)
     elif opts.pyon_gateway:
-        conn = PyonHTTPGateWayCeiConnection(amqp_settings['rabbitmq_host'],
-                port=5000,
+        conn = PyonHTTPGateWayCeiConnection(amqp_settings['gateway_host'],
+                port=amqp_settings.get('gateway_port', DEFAULT_GATEWAY_PORT),
                 timeout=opts.timeout)
         client = service.client(conn, dashi_name=opts.service_name)
     else:

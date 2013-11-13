@@ -6,7 +6,7 @@ import traceback
 
 from dashi import DashiConnection
 from dashi.bootstrap import DEFAULT_EXCHANGE
-from dashi.exceptions import NotFoundError, WriteConflictError, BadRequestError
+from dashi.exceptions import NotFoundError
 
 from ceiclient.exception import CeiClientError
 
@@ -143,7 +143,7 @@ class PyonCeiConnection(CeiConnection):
 
 class PyonHTTPGateWayCeiConnection(CeiConnection):
 
-    def __init__(self, hostname, timeout=None, port=5000, ssl=False):
+    def __init__(self, hostname, timeout=None, port=5001, ssl=False):
 
         self.hostname = hostname
         self.timeout = timeout
@@ -161,7 +161,11 @@ class PyonHTTPGateWayCeiConnection(CeiConnection):
         if call_type is None:
             call_type = 'service'
         elif call_type == 'agent':
+            call_type = 'agent'
             operation = 'execute_agent'
+        elif call_type == 'agent_resource':
+            call_type = 'agent'
+            operation = 'execute_resource'
         return "%s/ion-%s/%s/%s" % (self.url, call_type, service, operation)
 
     def _make_parameters(self, service, operation, params, call_type=None):
@@ -176,7 +180,7 @@ class PyonHTTPGateWayCeiConnection(CeiConnection):
                     'params': params
                 }
             }
-        else:
+        elif call_type == 'agent':
             params['command'] = {
                 'type_': 'AgentCommand',
                 'command': operation
@@ -186,6 +190,19 @@ class PyonHTTPGateWayCeiConnection(CeiConnection):
                 'agentRequest': {
                     'agentId': service,
                     'agentOp': 'execute_agent',
+                    'params': params
+                }
+            }
+        elif call_type == 'agent_resource':
+            params['command'] = {
+                'type_': 'AgentCommand',
+                'command': operation
+            }
+
+            payload = {
+                'agentRequest': {
+                    'agentId': service,
+                    'agentOp': 'execute_resource',
                     'params': params
                 }
             }
@@ -202,6 +219,7 @@ class PyonHTTPGateWayCeiConnection(CeiConnection):
         try:
             return result_json['data']['GatewayResponse']
         except KeyError:
+            print result_json
             error = result_json['data']['GatewayError']
             if error.get('Exception') == 'NotFound':
                 raise NotFoundError("%s: %s" % (error['Exception'], error['Message']))

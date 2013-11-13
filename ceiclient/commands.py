@@ -1635,7 +1635,9 @@ class PyonHTTPHAStatus(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
+        print "HELLO"
         process_id = client.get_ha_process_id(opts.process)
+        print process_id
         if not process_id:
             raise CeiClientError("Couldn't find agent for process %s" % opts.process)
         ha_client = PyonHTTPHAAgent.ha_client(client.connection, dashi_name=process_id)
@@ -1731,13 +1733,14 @@ class PyonHTTPHAWaitStatus(CeiCommand):
 
     @staticmethod
     def execute(client, opts):
-        ha_dashi_name = "ha_%s" % opts.process
-        ha_client = HAAgent.ha_client(client.connection, dashi_name=ha_dashi_name)
+        process_id = client.get_ha_process_id(opts.process)
+        ha_client = PyonHTTPHAAgent.ha_client(client.connection, dashi_name=process_id)
 
         deadline = time.time() + opts.max
         while 1:
 
             status = ha_client.status()
+            status = status['result']
             if status:
                 if status in ("READY", "STEADY"):
                     return status
@@ -1956,6 +1959,20 @@ class PDSystemBoot(CeiService):
         return PDClient(connection, dashi_name=dashi_name)
 
 
+class PyonHTTPPDSystemBoot(CeiService):
+
+    name = 'system-boot'
+    help = 'Control the Process Dispatcher system boot state'
+
+    commands = {}
+    for command in [PDSystemBootOn, PDSystemBootOff]:
+        commands[command.name] = command
+
+    @staticmethod
+    def client(connection, dashi_name=None):
+        return PyonHTTPPDClient(connection, dashi_name=dashi_name)
+
+
 class PyonHTTPProcess(CeiService):
 
     name = 'process'
@@ -2066,7 +2083,6 @@ class PyonHTTPHAAgent(CeiService):
 
     @staticmethod
     def ha_client(connection, dashi_name=None):
-
         return PyonHTTPHAAgentClient(connection, dashi_name=dashi_name)
 
 
@@ -2139,5 +2155,5 @@ for service in [PyonProcessDefinition, PyonPDProcess,
     PYON_SERVICES[service.name] = service
 
 PYON_GATEWAY_SERVICES = {}
-for service in [PyonHTTPProcess, PyonHTTPProcessDefinition, PyonHTTPHAAgent]:
+for service in [PyonHTTPProcess, PyonHTTPProcessDefinition, PyonHTTPHAAgent, PyonHTTPPDSystemBoot]:
     PYON_GATEWAY_SERVICES[service.name] = service
