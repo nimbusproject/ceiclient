@@ -411,6 +411,12 @@ class PDClient(DashiCeiClient):
     def dump(self):
         return self.connection.call(self.dashi_name, 'dump')
 
+    def add_engine(self, engine_id, slots, **kwargs):
+        definition = dict(engine_id=engine_id, slots=slots)
+        for key, val in kwargs.iteritems():
+            definition[key] = val
+        return self.connection.call(self.dashi_name, 'add_engine', definition=definition)
+
 
 class HAAgentClient(DashiCeiClient):
 
