@@ -332,6 +332,12 @@ class PDClient(DashiCeiClient):
     def set_system_boot(self, system_boot):
         self.connection.call(self.dashi_name, 'set_system_boot', system_boot=system_boot)
 
+    def add_engine(self, engine_id, slots, **kwargs):
+        definition = dict(engine_id=engine_id, slots=slots)
+        for key, val in kwargs.iteritems():
+            definition[key] = val
+        return self.connection.call(self.dashi_name, 'add_engine', definition=definition)
+
     def create_process_definition(self, process_definition=None, process_definition_id=None):
         if process_definition is None:
             raise CeiClientError("You must provide a process defintion")
