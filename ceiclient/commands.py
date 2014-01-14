@@ -610,7 +610,8 @@ def _validate_process_definition(definition):
 
     module = executable.get('module')
     cls = executable.get('class')
-    if not module or not cls:
+    execu = executable.get('exec')
+    if not execu and (not module or not cls):
         raise ValueError("definition has invalid executable")
 
 
@@ -732,6 +733,19 @@ class PDDescribeProcessDefinition(CeiCommand):
     def execute(client, opts):
         return client.describe_process_definition(opts.process_definition_id)
 
+class PDNodeState(CeiCommand):
+
+    name = 'nodestate'
+
+    def __init__(self, subparsers):
+        parser = subparsers.add_parser(self.name)
+        parser.add_argument('node_id')
+        parser.add_argument('domain_id')
+        parser.add_argument('state')
+
+    @staticmethod
+    def execute(client, opts):
+        return client.node_state(opts.node_id, opts.domain_id, opts.state)
 
 class PDUpdateProcessDefinition(CeiCommand):
 
@@ -1994,7 +2008,7 @@ class Process(CeiService):
 
     commands = {}
     for command in [PDScheduleProcess, PDDescribeProcess, PDDescribeProcesses,
-            PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess]:
+            PDTerminateProcess, PDDump, PDRestartProcess, PDWaitProcess, PDNodeState]:
         commands[command.name] = command
 
     @staticmethod
