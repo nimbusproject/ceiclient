@@ -383,7 +383,6 @@ class PDClient(DashiCeiClient):
         return self.connection.call(self.dashi_name, 'remove_definition', definition_id=process_definition_id)
 
     def list_process_definitions(self):
-        print self.connection
         return self.connection.call(self.dashi_name, 'list_definitions')
 
     def schedule_process(self, upid, process_definition_id=None,
