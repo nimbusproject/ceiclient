@@ -1,7 +1,7 @@
 numpy==1.6.2
 CouchDB==0.8
 M2Crypto==0.21.1
-PyYAML==3.10
+PyYAML==5.1
 coverage==3.5
 gevent==0.13.6
 gevent-zeromq==0.2.0
